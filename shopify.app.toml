@@ -1,0 +1,33 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "f4d04445a027ec1a9c87093458c6b341"
+name = "test-bundle-app"
+handle = "test-bundle-app"
+application_url = "https://abstracts-existed-spaces-sought.trycloudflare.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "emre-development-store.myshopify.com"
+include_config_on_deploy = true
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "write_products"
+
+[auth]
+redirect_urls = [
+  "https://abstracts-existed-spaces-sought.trycloudflare.com/auth/callback",
+  "https://abstracts-existed-spaces-sought.trycloudflare.com/auth/shopify/callback",
+  "https://abstracts-existed-spaces-sought.trycloudflare.com/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2024-07"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks"
+
+[pos]
+embedded = false
