@@ -4,6 +4,8 @@ import { useAppBridge } from '@shopify/app-bridge-react';
 import { LegacyCard, EmptyState, Page, Layout, BlockStack, Card, Text, TextField, FormLayout } from '@shopify/polaris';
 import { useCallback, useEffect, useState } from 'react';
 import { authenticate } from '~/shopify.server';
+import { createVariant } from '~/models/Variation.server';
+
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // Here we can get ready-to-use data before component renders. For example in edit page we get data from db and fill the form with this data 
@@ -12,7 +14,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   //   slug: "Test edit data"
   // }
 
-  // return json(formData)
+  // return json(formData);
+
+  
 
   await authenticate.admin(request);
 
@@ -24,6 +28,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
   let body = await request.formData();
   const formDataObject = Object.fromEntries(body);
+
+  createVariant();
 
   return json(formDataObject);
 }

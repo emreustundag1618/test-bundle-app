@@ -89,3 +89,9 @@ model Accessory {
   bundle Bundle @relation(fields: [bundleId], references: [id])
   bundleId String
 }
+
+model TestModel {
+  id String @id
+  title String
+  slug String
+}
