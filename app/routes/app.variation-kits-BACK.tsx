@@ -1,7 +1,7 @@
 import { LoaderFunctionArgs, json } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import { useAppBridge } from '@shopify/app-bridge-react';
-import { EmptyState, Page, Layout, BlockStack, Card, Text } from '@shopify/polaris';
+import { LegacyCard, EmptyState, Page, Layout, BlockStack, Card, Text } from '@shopify/polaris';
 import { useCallback, useEffect, useState } from 'react';
 import { authenticate } from '~/shopify.server';
 
@@ -43,15 +43,15 @@ const Variations = () => {
       <BlockStack gap="1000">
         <Layout>
           <Layout.Section>
-            <Card>
+            <LegacyCard sectioned>
               <EmptyState
                 heading="Create a variation kit to get started"
-                action={{ content: 'Create kit', url:"/app/create-kit" }}
-                image={'https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png'}
+                action={{ content: 'Create kit', onAction: toggleRp }}
+                image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
               >
                 <p>Create variant groups and accessories of a pattern and sell them together through a pattern type product.</p>
               </EmptyState>
-            </Card>
+            </LegacyCard>
           </Layout.Section>
           <Layout.Section>
             <Card>

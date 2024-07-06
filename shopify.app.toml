@@ -3,7 +3,7 @@
 client_id = "f4d04445a027ec1a9c87093458c6b341"
 name = "test-bundle-app"
 handle = "test-bundle-app"
-application_url = "https://abstracts-existed-spaces-sought.trycloudflare.com"
+application_url = "https://seller-inquiries-parade-combined.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://abstracts-existed-spaces-sought.trycloudflare.com/auth/callback",
-  "https://abstracts-existed-spaces-sought.trycloudflare.com/auth/shopify/callback",
-  "https://abstracts-existed-spaces-sought.trycloudflare.com/api/auth/callback"
+  "https://seller-inquiries-parade-combined.trycloudflare.com/auth/callback",
+  "https://seller-inquiries-parade-combined.trycloudflare.com/auth/shopify/callback",
+  "https://seller-inquiries-parade-combined.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

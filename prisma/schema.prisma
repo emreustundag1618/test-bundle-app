@@ -30,3 +30,62 @@ model Session {
   collaborator  Boolean?  @default(false)
   emailVerified Boolean?  @default(false)
 }
+
+model Bundle {
+  id String @id
+  title String
+  slug String
+  variants ProductVariant[]
+  accessories Accessory[]
+}
+
+// This is for SELECT VARIANTS section
+model ProductVariant {
+  id String @id
+  displayName String
+  price Float
+  quantityNeeded Int
+  inventoryQuantity Int
+  image String
+  title String @map("variant_title")
+  createdAt DateTime?
+  updatedAt DateTime?
+
+  // Define the relationship with Product
+  // product Product @relation(fields: [productId], references: [id])
+  // productId String
+
+  // Define the relationships with Bundle
+  bundle Bundle @relation(fields: [bundleId], references: [id])
+  bundleId String
+}
+
+// Only for creating relationship to ProductVariant
+// Maybe its not necessary
+// model Product {
+//   id String @id
+//   title String @map("product_title")
+//   image String @map("featured_image")
+//   createdAt DateTime?
+//   updatedAt DateTime?
+
+//   // Define the relationship with ProductVariant
+//   variants ProductVariant[]
+// }
+
+// This is for SELECT ACCESSORIES section
+model Accessory {
+  id String @id
+  title String @map("product_title")
+  price Float
+  productType String
+  quantityNeeded Int
+  totalInventory Int
+  image String @map("featured_image")
+  createdAt DateTime?
+  updatedAt DateTime?
+
+  // Define the relationships with Bundle
+  bundle Bundle @relation(fields: [bundleId], references: [id])
+  bundleId String
+}
