@@ -34,7 +34,7 @@ model Session {
 model Bundle {
   id String @id
   title String
-  slug String
+  slug String @unique
   variants ProductVariant[]
   accessories Accessory[]
 }
@@ -56,8 +56,8 @@ model ProductVariant {
   // productId String
 
   // Define the relationships with Bundle
-  bundle Bundle @relation(fields: [bundleId], references: [id])
-  bundleId String
+  bundle Bundle? @relation(fields: [bundleId], references: [id])
+  bundleId String?
 }
 
 // Only for creating relationship to ProductVariant
@@ -86,8 +86,8 @@ model Accessory {
   updatedAt DateTime?
 
   // Define the relationships with Bundle
-  bundle Bundle @relation(fields: [bundleId], references: [id])
-  bundleId String
+  bundle Bundle? @relation(fields: [bundleId], references: [id])
+  bundleId String?
 }
 
 model TestModel {

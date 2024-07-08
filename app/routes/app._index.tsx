@@ -3,21 +3,25 @@ import { useLoaderData } from '@remix-run/react';
 import { useAppBridge } from '@shopify/app-bridge-react';
 import { EmptyState, Page, Layout, BlockStack, Card, Text } from '@shopify/polaris';
 import { useCallback, useEffect, useState } from 'react';
+import { getBundles } from '~/models/Bundle.server';
 import { authenticate } from '~/shopify.server';
 
 
 // Must be on app._index.tsx file
-// export const loader = async ({ request }: LoaderFunctionArgs) => {
-//   await authenticate.admin(request);
-//   console.log(authenticate)
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  await authenticate.admin(request);
 
-//   return null;
-// };
+  const bundles = await getBundles();
+  console.log(bundles)
+
+  return json(bundles);
+};
 
 
 const Variations = () => {
   const [rpActive, setRpActive] = useState(false);
   const [testText, setTestText] = useState("");
+  const bundles = useLoaderData();
 
   const shopify = useAppBridge();
 
@@ -58,6 +62,11 @@ const Variations = () => {
               <Text as="h2" variant="headingSm">Test card</Text>
               <Text as="p">{testText}</Text>
               {rpActive && <Text as="p">Some text here!!!!</Text>}
+            </Card>
+          </Layout.Section>
+          <Layout.Section>
+            <Card>
+              <Text as="p">{JSON.stringify(bundles, null, 2)}</Text>
             </Card>
           </Layout.Section>
         </Layout>

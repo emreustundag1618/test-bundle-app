@@ -4,7 +4,7 @@ import { useAppBridge } from '@shopify/app-bridge-react';
 import { LegacyCard, EmptyState, Page, Layout, BlockStack, Card, Text, TextField, FormLayout } from '@shopify/polaris';
 import { useCallback, useEffect, useState } from 'react';
 import { authenticate } from '~/shopify.server';
-import { createVariant } from '~/models/Variation.server';
+import { createBundle, getBundleById, updateBundle, deleteBundle } from '~/models/Bundle.server';
 
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -15,12 +15,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // }
 
   // return json(formData);
-
-  
-
   await authenticate.admin(request);
 
-  return null;
+  const bundle = await getBundleById("4");
+
+  return json(bundle);
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -29,7 +28,9 @@ export async function action({ request }: ActionFunctionArgs) {
   let body = await request.formData();
   const formDataObject = Object.fromEntries(body);
 
-  createVariant();
+  console.log(formDataObject)
+
+  createBundle();
 
   return json(formDataObject);
 }
@@ -41,6 +42,8 @@ const CreateKit = () => {
   const [selectedData, setSelectedData] = useState<any>([]);
   const [selectedAcc, setSelectedAcc] = useState<any>([])
 
+  const bundleData = useLoaderData();
+
   const submit = useSubmit();
 
   const shopify = useAppBridge();
@@ -49,7 +52,7 @@ const CreateKit = () => {
     try {
       const selected = await shopify.resourcePicker({ type: 'variant', multiple: true });
       // Handle the selected product here
-      setSelectedData(selected || [])
+      setSelectedData(selected || []);
     } catch (error) {
       // Handle any errors that might occur
       console.error('Error picking resource:', error);
@@ -75,15 +78,34 @@ const CreateKit = () => {
   }, []);
 
   const handleAction = () => {
-    // This makes an post request to action function
-    submit(
-      formData,
-      {
-        replace: true,
-        method: "POST",
-        action: ""
-      }
-    )
+    // This makes an post request to action 
+    const [id, title, price, productType, totalInventory, images, createdAt, updatedAt] = selectedAcc
+    console.log(selectedAcc[0])
+    if (selectedAcc.length > 0) {
+      submit(
+        {
+          ...formData,
+          accessories: [...selectedAcc]
+        },
+        {
+          replace: true,
+          method: "POST",
+          action: ""
+        }
+      )
+    } else {
+      submit(
+        {
+          ...formData
+        },
+        {
+          replace: true,
+          method: "POST",
+          action: ""
+        }
+      )
+    }
+
     shopify.toast.show("Form data sent");
   }
 
@@ -158,6 +180,11 @@ const CreateKit = () => {
               </Layout.Section>
             )
           }
+          <Layout.Section>
+            <Card>
+              <pre>{JSON.stringify(bundleData, null, 2)}</pre>
+            </Card>
+          </Layout.Section>
         </Layout>
       </BlockStack>
     </Page>
