@@ -3,7 +3,7 @@
 client_id = "f4d04445a027ec1a9c87093458c6b341"
 name = "test-bundle-app"
 handle = "test-bundle-app"
-application_url = "https://evans-functionality-announcements-allen.trycloudflare.com"
+application_url = "https://optimize-ends-interest-create.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://evans-functionality-announcements-allen.trycloudflare.com/auth/callback",
-  "https://evans-functionality-announcements-allen.trycloudflare.com/auth/shopify/callback",
-  "https://evans-functionality-announcements-allen.trycloudflare.com/api/auth/callback"
+  "https://optimize-ends-interest-create.trycloudflare.com/auth/callback",
+  "https://optimize-ends-interest-create.trycloudflare.com/auth/shopify/callback",
+  "https://optimize-ends-interest-create.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

@@ -1,35 +1,54 @@
 import { json } from "@remix-run/node";
 import prisma from "../db.server";
+import { v4 as uuidv4 } from 'uuid';
+
+function generateUniqueId() {
+    return uuidv4();
+}
 
 
-export async function createBundle() {
+export async function createBundle(data: any) {
+    console.log("================DATA DATA DATA =======================", data);
+    
+    const testArray = data.variants.map((variant: any) => ({
+        id: variant.varId,
+        displayName: variant.displayName,
+        price: variant.price,
+        quantityNeeded: 1,
+        inventory: variant.inventory || 0,
+        image: variant.image,
+        title: variant.title || "",
+    }));
+    console.log("================ Test Array =======================", testArray);
     try {
         const newBundle = await prisma.bundle.create({
             data: {
-                id: "4",
-                title: "Test bundle title",
-                slug: "test-bundle-slug",
+                id: generateUniqueId(),
+                title: data.formData.title,
+                slug: data.formData.slug,
                 variants: {
-                    create: {
-                        id: "2",
-                        displayName: "Test title",
-                        price: 13.00,
-                        quantityNeeded: 2,
-                        inventoryQuantity: 30,
-                        image: "ccc.jpg",
-                        title: "variant title",
-                    }
+                    create: data.variants.map((variant: any) => ({
+                        id: variant.id,
+                        varId: variant.varId,
+                        displayName: variant.displayName,
+                        price: variant.price,
+                        quantityNeeded: 1,
+                        inventory: variant.inventory || 0,
+                        image: variant.image,
+                        title: variant.title || "",
+                    }))
                 },
                 accessories: {
-                    create: {
-                        id: "2",
-                        title: "Test title",
-                        price: 13.00,
-                        productType: "accessory",
-                        quantityNeeded: 2,
-                        totalInventory: 20,
-                        image: "variant title",
-                    }
+                    create: data.accessories.map((accessory: any) => ({
+                        id: accessory.id,
+                        accId: accessory.accId,
+                        title: accessory.title,
+                        price: accessory.price || 0.00,
+                        productType: "accessories",
+                        quantityNeeded: 1,
+                        totalInventory: accessory.totalInventory,
+                        image: accessory.image || "",
+                    }))
                 }
             }
         });
@@ -42,12 +61,13 @@ export async function createBundle() {
     }
 }
 
-export async function getBundleById(ID: string) {
+export async function getBundleById(ID: any) {
     try {
         const bundle = await prisma.bundle.findUnique({
             where: {
                 id: ID
-            }
+            },
+            include: { variants: true, accessories: true}
         });
         await prisma.$disconnect();
         return bundle
@@ -59,10 +79,8 @@ export async function getBundleById(ID: string) {
 }
 
 export async function getBundles() {
-    console.log("================== WE ARE HERE ====================")
     try {
         const bundles = await prisma.bundle.findMany({});
-        console.log("Bundles: ", bundles)
         await prisma.$disconnect();
         return bundles
     } catch (error) {

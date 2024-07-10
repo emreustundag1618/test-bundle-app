@@ -32,31 +32,32 @@ model Session {
 }
 
 model Bundle {
-  id String @id
-  title String
-  slug String @unique
-  variants ProductVariant[]
+  id          String           @id
+  title       String
+  slug        String           
+  variants    ProductVariant[]
   accessories Accessory[]
 }
 
 // This is for SELECT VARIANTS section
 model ProductVariant {
-  id String @id
-  displayName String
-  price Float
+  id             String    @id
+  varId          String
+  displayName    String
+  price          Float
   quantityNeeded Int
-  inventoryQuantity Int
-  image String
-  title String @map("variant_title")
-  createdAt DateTime?
-  updatedAt DateTime?
+  inventory      Int
+  image          String
+  title          String
+  createdAt      DateTime?
+  updatedAt      DateTime?
 
   // Define the relationship with Product
   // product Product @relation(fields: [productId], references: [id])
   // productId String
 
   // Define the relationships with Bundle
-  bundle Bundle? @relation(fields: [bundleId], references: [id])
+  bundle   Bundle? @relation(fields: [bundleId], references: [id])
   bundleId String?
 }
 
@@ -75,23 +76,24 @@ model ProductVariant {
 
 // This is for SELECT ACCESSORIES section
 model Accessory {
-  id String @id
-  title String @map("product_title")
-  price Float
-  productType String
+  id             String    @id
+  accId          String
+  title          String
+  price          Float
+  productType    String
   quantityNeeded Int
   totalInventory Int
-  image String @map("featured_image")
-  createdAt DateTime?
-  updatedAt DateTime?
+  image          String
+  createdAt      DateTime?
+  updatedAt      DateTime?
 
   // Define the relationships with Bundle
-  bundle Bundle? @relation(fields: [bundleId], references: [id])
+  bundle   Bundle? @relation(fields: [bundleId], references: [id])
   bundleId String?
 }
 
 model TestModel {
-  id String @id
+  id    String @id
   title String
-  slug String
+  slug  String
 }

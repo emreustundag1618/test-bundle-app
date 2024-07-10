@@ -1,9 +1,9 @@
-import { LoaderFunctionArgs, json } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react';
+import { ActionFunctionArgs, LoaderFunctionArgs, json } from '@remix-run/node';
+import { useLoaderData, useNavigate } from '@remix-run/react';
 import { useAppBridge } from '@shopify/app-bridge-react';
-import { EmptyState, Page, Layout, BlockStack, Card, Text } from '@shopify/polaris';
+import { EmptyState, Page, Layout, BlockStack, Card, Text, IndexTable, useBreakpoints, InlineStack, Thumbnail } from '@shopify/polaris';
 import { useCallback, useEffect, useState } from 'react';
-import { getBundles } from '~/models/Bundle.server';
+import { createBundle, getBundles } from '~/models/Bundle.server';
 import { authenticate } from '~/shopify.server';
 
 
@@ -12,63 +12,113 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request);
 
   const bundles = await getBundles();
-  console.log(bundles)
 
   return json(bundles);
 };
 
+export async function action({request}: ActionFunctionArgs) {
+  
+  const formData = await request.formData();
+  const dataEntry = formData.get('data');
 
-const Variations = () => {
+  if (typeof dataEntry === 'string') {
+    const data = JSON.parse(dataEntry);
+
+    // Process the data, e.g., save to database
+    await createBundle(data);
+
+    return json(data);
+  } else {
+    throw new Error("Invalid form data");
+  }
+}
+
+
+const Bundles = () => {
   const [rpActive, setRpActive] = useState(false);
   const [testText, setTestText] = useState("");
-  const bundles = useLoaderData();
+  const bundles = useLoaderData<any[]>();
 
   const shopify = useAppBridge();
 
-  useEffect(() => {
-    setTestText(JSON.stringify(shopify));
-    const getRp = async () => {
-      const selected = await shopify.resourcePicker({ type: 'product' });
-    }
+  const navigate = useNavigate();
 
-    if (rpActive) {
-      shopify.toast.show("Toast added");
-      getRp();
-    }
-  }, [rpActive, shopify]);
-
-  const toggleRp = useCallback(() => {
-    setRpActive(prevState => !prevState);
-  }, []);
-
+  const handleClick = (id: any) => {
+    navigate("/app/bundles/" + id)
+  }
 
   return (
-    <Page title="Variation Kits">
+    <Page title="Variant Kits">
       <BlockStack gap="1000">
         <Layout>
-          <Layout.Section>
-            <Card>
-              <EmptyState
-                heading="Create a variation kit to get started"
-                action={{ content: 'Create kit', url:"/app/create-kit" }}
-                image={'https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png'}
-              >
-                <p>Create variant groups and accessories of a pattern and sell them together through a pattern type product.</p>
-              </EmptyState>
-            </Card>
-          </Layout.Section>
-          <Layout.Section>
-            <Card>
-              <Text as="h2" variant="headingSm">Test card</Text>
-              <Text as="p">{testText}</Text>
-              {rpActive && <Text as="p">Some text here!!!!</Text>}
-            </Card>
-          </Layout.Section>
-          <Layout.Section>
-            <Card>
-              <Text as="p">{JSON.stringify(bundles, null, 2)}</Text>
-            </Card>
-          </Layout.Section>
+          {!(bundles.length > 0) ? (
+            <Layout.Section>
+              <Card>
+                <EmptyState
+                  heading="Create a variation kit to get started"
+                  action={{ content: 'Create kit', url: "/app/create-kit" }}
+                  image={'https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png'}
+                >
+                  <p>Create variant groups and accessories of a pattern and sell them together through a pattern type product.</p>
+                </EmptyState>
+              </Card>
+            </Layout.Section>
+          ) : (
+            <Layout.Section>
+              <Card>
+                <IndexTable
+                  selectable={false}
+                  condensed={useBreakpoints().smDown}
+                  resourceName={{
+                    singular: 'bundle',
+                    plural: 'bundles',
+                  }}
+                  itemCount={bundles.length}
+                  headings={[
+                    { title: 'Name' },
+                    { title: 'Slug' },
+                    {
+                      alignment: 'end',
+                      id: 'price',
+                      title: 'Price',
+                    },
+                  ]}
+                >
+                  {bundles.map(
+                    ({ id, title, slug }, index) => (
+                      <IndexTable.Row
+                        id={id}
+                        key={id}
+                        position={index}
+                        onClick={() => handleClick(id)}
+                      >
+                        <IndexTable.Cell>
+                          <InlineStack gap="300" blockAlign='center'>
+                            <Thumbnail
+                              source="https://burst.shopifycdn.com/photos/black-leather-choker-necklace_373x@2x.jpg"
+                              size="medium"
+                              alt="Black choker necklace"
+                            />
+
+                            <Text variant="bodyMd" fontWeight="bold" as="h3">
+                              {title}
+                            </Text>
+
+                          </InlineStack>
+                        </IndexTable.Cell>
+                        <IndexTable.Cell>{slug}</IndexTable.Cell>
+                        <IndexTable.Cell>
+                          <Text as="span" alignment="end" numeric>
+                            $0.00
+                          </Text>
+                        </IndexTable.Cell>
+                      </IndexTable.Row>
+                    ),
+                  )}
+                </IndexTable>
+              </Card>
+            </Layout.Section>
+          )}
         </Layout>
       </BlockStack>
 
@@ -76,4 +126,4 @@ const Variations = () => {
   )
 }
 
-export default Variations
+export default Bundles

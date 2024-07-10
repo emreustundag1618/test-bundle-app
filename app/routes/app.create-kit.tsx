@@ -1,10 +1,13 @@
 import { ActionFunctionArgs, json, LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { useLoaderData, useSubmit } from '@remix-run/react';
+import { useFetcher, useLoaderData, useNavigate, useSubmit } from '@remix-run/react';
 import { useAppBridge } from '@shopify/app-bridge-react';
-import { LegacyCard, EmptyState, Page, Layout, BlockStack, Card, Text, TextField, FormLayout } from '@shopify/polaris';
+import { LegacyCard, EmptyState, Page, Layout, BlockStack, Card, Text, TextField, FormLayout, ResourceList, ResourceItem, Avatar, Thumbnail, InlineStack, Bleed, InlineGrid, Icon } from '@shopify/polaris';
 import { useCallback, useEffect, useState } from 'react';
 import { authenticate } from '~/shopify.server';
 import { createBundle, getBundleById, updateBundle, deleteBundle } from '~/models/Bundle.server';
+import { transformVariantData, transformAccessoryData } from '~/utils/transform';
+import { PlusCircleIcon } from '@shopify/polaris-icons';
+
 
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -17,32 +20,37 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // return json(formData);
   await authenticate.admin(request);
 
-  const bundle = await getBundleById("4");
-
-  return json(bundle);
+  return null;
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   // Here we can create backend logic. For example adding data to sqlite with prisma or creating new product in shopify with graphql
 
-  let body = await request.formData();
-  const formDataObject = Object.fromEntries(body);
+  const formData = await request.formData();
+  const dataEntry = formData.get('data');
 
-  console.log(formDataObject)
+  if (typeof dataEntry === 'string') {
+    const data = JSON.parse(dataEntry);
 
-  createBundle();
+    // Process the data, e.g., save to database
+    await createBundle(data);
 
-  return json(formDataObject);
+    return json(data);
+  } else {
+    throw new Error("Invalid form data");
+  }
 }
 
 
 const CreateKit = () => {
   // const testData = useLoaderData<typeof loader>()
   const [formData, setFormData] = useState({ title: "", slug: "" });
-  const [selectedData, setSelectedData] = useState<any>([]);
-  const [selectedAcc, setSelectedAcc] = useState<any>([])
+  const [selectedVar, setSelectedVar] = useState<any>([]);
+  const [selectedAcc, setSelectedAcc] = useState<any>([]);
 
   const bundleData = useLoaderData();
+  const navigate = useNavigate();
+  const fetcher = useFetcher();
 
   const submit = useSubmit();
 
@@ -52,10 +60,11 @@ const CreateKit = () => {
     try {
       const selected = await shopify.resourcePicker({ type: 'variant', multiple: true });
       // Handle the selected product here
-      setSelectedData(selected || []);
+      const transformedVariants = selected?.map(transformVariantData);
+      setSelectedVar(transformedVariants || []);
     } catch (error) {
       // Handle any errors that might occur
-      console.error('Error picking resource:', error);
+      console.error('Error picking variants:', error);
     }
   }, []);
 
@@ -70,47 +79,39 @@ const CreateKit = () => {
         }, multiple: true
       });
       // Handle the selected product here
-      setSelectedAcc(selected || [])
+      const transformedAccessories = selected?.map(transformAccessoryData);
+      setSelectedAcc(transformedAccessories || [])
     } catch (error) {
       // Handle any errors that might occur
-      console.error('Error picking resource:', error);
+      console.error('Error picking accessories:', error);
     }
   }, []);
 
   const handleAction = () => {
-    // This makes an post request to action 
-    const [id, title, price, productType, totalInventory, images, createdAt, updatedAt] = selectedAcc
-    console.log(selectedAcc[0])
-    if (selectedAcc.length > 0) {
-      submit(
-        {
-          ...formData,
-          accessories: [...selectedAcc]
-        },
-        {
-          replace: true,
-          method: "POST",
-          action: ""
-        }
-      )
-    } else {
-      submit(
-        {
-          ...formData
-        },
-        {
-          replace: true,
-          method: "POST",
-          action: ""
-        }
-      )
-    }
+    // This makes an post request to action
+    const data = {
+      formData,
+      variants: selectedVar,
+      accessories: selectedAcc,
+    };
+
+    const formDataToSend = new FormData();
+    formDataToSend.append('data', JSON.stringify(data));
+
+    fetcher.submit(formDataToSend, {
+      method: 'post',
+      encType: 'multipart/form-data',
+      action: "/app"
+    });
 
     shopify.toast.show("Form data sent");
   }
 
-
-
+  useEffect(() => {
+    if (fetcher.state === 'idle' && fetcher.data) {
+      setTimeout(() => navigate("/app"), 1000);
+    }
+  }, [fetcher.state, fetcher.data]);
 
   return (
     <Page
@@ -143,7 +144,7 @@ const CreateKit = () => {
             </Card>
           </Layout.Section>
 
-          {!(selectedData.length > 0) ?
+          {!(selectedVar.length > 0) ?
             (
               <Layout.Section>
                 <Card>
@@ -157,7 +158,7 @@ const CreateKit = () => {
             (
               <Layout.Section>
                 <Card>
-                  <pre>{JSON.stringify(selectedData, null, 2)}</pre>
+                  <pre>{JSON.stringify(selectedVar, null, 2)}</pre>
                 </Card>
               </Layout.Section>
             )
@@ -182,7 +183,118 @@ const CreateKit = () => {
           }
           <Layout.Section>
             <Card>
-              <pre>{JSON.stringify(bundleData, null, 2)}</pre>
+              <BlockStack gap="300">
+                <InlineGrid gap="200" alignItems="center" columns={2}>
+                  <Text as='p' variant='bodyMd' fontWeight='bold'>
+                    Variant
+                  </Text>
+
+                  <InlineGrid columns={2} gap="300" alignItems="center">
+                    <InlineGrid columns={2} gap="300" alignItems="center">
+                      <Text as='p' variant='bodyMd' fontWeight='bold'>
+                        Quantity need
+                      </Text>
+                      <Text as='p' variant='bodyMd' fontWeight='bold'>
+                        Price
+                      </Text>
+                    </InlineGrid>
+                    <InlineGrid columns={2} gap="300" alignItems="center">
+                      <Text as='p' variant='bodyMd' fontWeight='bold'>
+                        Available
+                      </Text>
+                      <Text as='p' variant='bodyMd' fontWeight='bold'>
+                        Action
+                      </Text>
+                    </InlineGrid>
+
+                  </InlineGrid>
+                </InlineGrid>
+
+                {selectedVar.map((variant: any) => (
+                  <InlineGrid gap="200" alignItems="center" columns={2}>
+                    <InlineStack gap="300" blockAlign='center'>
+                      <Thumbnail
+                        source="https://burst.shopifycdn.com/photos/black-leather-choker-necklace_373x@2x.jpg"
+                        size="large"
+                        alt="Black choker necklace"
+                      />
+                      <BlockStack>
+                        <Text variant="bodyMd" fontWeight="bold" as="h3">
+                          {variant.title}
+                        </Text>
+                        <Text variant="bodyMd" as="p">
+                          {variant.displayName}
+                        </Text>
+                      </BlockStack>
+                    </InlineStack>
+
+                    <InlineGrid columns={2} gap="300" alignItems="center">
+                      <InlineGrid columns={2} gap="300" alignItems="center">
+                        <TextField
+                          labelHidden
+                          label="Quantity need"
+                          autoComplete="off"
+                          value="1"
+                          type="number"
+                        />
+                        <Text as='p' variant='bodyMd' fontWeight='bold'>
+                          $ {variant.price}
+                        </Text>
+                      </InlineGrid>
+                      <InlineGrid columns={2} gap="300" alignItems="center">
+                        <TextField
+                          labelHidden
+                          disabled
+                          label="Total inventory quantity"
+                          autoComplete="off"
+                          value="100"
+                          type="number"
+                        />
+                        <Icon source={PlusCircleIcon} />
+                      </InlineGrid>
+
+                    </InlineGrid>
+                  </InlineGrid>
+
+                ))}
+              </BlockStack>
+
+              {/* <ResourceList
+                resourceName={{ singular: 'variant', plural: 'variants' }}
+                selectable={false}
+                items={selectedVar.map((variant: any) => {
+                  return {
+                    id: variant.id,
+                    url: '#',
+                    name: variant.displayName,
+                    quantity: variant.quantity,
+                    media: (
+                      <Thumbnail
+                        source={variant.image}
+                        alt="Default alt"
+                      />
+                    ),
+                  }
+                })}
+                renderItem={(item) => {
+                  const { id, varId, name, price, quantityNeeded, inventory, image, title } = item;
+                  const media = <Avatar customer size="md" name={name} />;
+
+                  return (
+                    <ResourceItem
+                      id={id}
+                      onClick={() => { }}
+                      media={image}
+                      accessibilityLabel={`View details for ${name}`}
+                    >
+
+
+
+                      <div>{title}</div>
+                    </ResourceItem>
+                  );
+                }}
+              /> */}
             </Card>
           </Layout.Section>
         </Layout>
