@@ -1,8 +1,8 @@
-import { json, LoaderFunctionArgs } from "@remix-run/node"
-import { useLoaderData } from "@remix-run/react";
+import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/node"
+import { useFetcher, useLoaderData } from "@remix-run/react";
 import { BlockStack, Card, EmptyState, FormLayout, Layout, Page, TextField, Text, InlineGrid, InlineStack, Thumbnail, Icon } from "@shopify/polaris";
 import { useCallback, useEffect, useState } from "react";
-import { getBundleById } from "~/models/Bundle.server";
+import { getBundleById, updateBundle } from "~/models/Bundle.server";
 import { transformAccessoryData, transformVariantData } from "~/utils/transform";
 import { XIcon } from '@shopify/polaris-icons';
 
@@ -13,12 +13,33 @@ export async function loader({ params }: LoaderFunctionArgs) {
     return json(bundle)
 }
 
+export async function action({ request, params }: ActionFunctionArgs) {
+
+    const formData = await request.formData();
+    const dataEntry = formData.get('data');
+    const bundleId = params.id;
+
+    if (typeof dataEntry === "string") {
+        const data = JSON.parse(dataEntry);
+
+        updateBundle(bundleId, data);
+    } else {
+        throw new Error("Invalid form data when updating the bundle");
+    }
+
+
+
+    return json({})
+}
+
 
 const BundleDetail = () => {
     const bundle = useLoaderData<any>();
     const [formData, setFormData] = useState({ title: "", slug: "" });
     const [variants, setVariants] = useState<any>([]);
     const [accessories, setAccessories] = useState<any>([]);
+
+    const fetcher = useFetcher();
 
     useEffect(() => {
         setFormData({ title: bundle.title, slug: bundle.slug });
@@ -57,8 +78,31 @@ const BundleDetail = () => {
         }
     }, []);
 
+    const handleAction = () => {
+        // This makes an post request to action
+        const data = {
+            formData,
+            variants,
+            accessories,
+        };
+
+        const formDataToSend = new FormData();
+        formDataToSend.append('data', JSON.stringify(data));
+
+        fetcher.submit(formDataToSend, {
+            method: 'post',
+            encType: 'multipart/form-data',
+        });
+
+        shopify.toast.show("Bundle updated");
+    }
+
     return (
-        <Page title={bundle.title}>
+        <Page
+            title={bundle.title}
+            backAction={{ url: '/app' }}
+            primaryAction={{ content: "Save", disabled: false, onAction: () => handleAction() }}
+        >
             <BlockStack>
                 <Layout>
                     <Layout.Section>

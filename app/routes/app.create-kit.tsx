@@ -104,7 +104,7 @@ const CreateKit = () => {
       action: "/app"
     });
 
-    shopify.toast.show("Form data sent");
+    shopify.toast.show("Bundle created");
   }
 
   useEffect(() => {

@@ -90,14 +90,42 @@ export async function getBundles() {
     }
 }
 
-export async function updateBundle(ID: string) {
+export async function updateBundle(ID: any, data: any) {
     try {
         const updatedBundle = await prisma.bundle.update({
             where: {
                 id: ID
             },
             data: {
-                title: "Updated title"
+                title: data.formData.title,
+                slug: data.formData.slug,
+                variants: {
+                    deleteMany: {}, // Delete existing variants
+                    create: data.variants.map((variant: any) => ({
+                        id: variant.id,
+                        varId: variant.varId,
+                        displayName: variant.displayName,
+                        price: variant.price,
+                        quantityNeeded: 1,
+                        inventory: variant.inventory || 0,
+                        image: variant.image,
+                        title: variant.title || "",
+                    }))
+                },
+                accessories: {
+                    deleteMany: {}, // Delete existing variants
+                    create: data.accessories.map((accessory: any) => ({
+                        id: accessory.id,
+                        accId: accessory.accId,
+                        title: accessory.title,
+                        price: accessory.price || 0.00,
+                        productType: "accessories",
+                        quantityNeeded: 1,
+                        totalInventory: accessory.totalInventory,
+                        image: accessory.image || "",
+                    }))
+                }
+
             }
         })
         await prisma.$disconnect();
