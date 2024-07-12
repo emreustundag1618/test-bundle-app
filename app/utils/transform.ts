@@ -8,7 +8,7 @@ export function transformVariantData(variant: any) {
     return {
         id: generateUniqueId(),
         varId: variant.id || "",
-        productId: variant.product.id,
+        productId: variant.product.id || "",
         displayName: variant.displayName,
         price: parseFloat(variant.price) || 0.00,
         quantityNeeded: variant.quantityNeeded || 1,

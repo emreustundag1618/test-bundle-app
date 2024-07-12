@@ -8,18 +8,6 @@ function generateUniqueId() {
 
 
 export async function createBundle(data: any) {
-    console.log("================DATA DATA DATA =======================", data);
-    
-    const testArray = data.variants.map((variant: any) => ({
-        id: variant.varId,
-        displayName: variant.displayName,
-        price: variant.price,
-        quantityNeeded: 1,
-        inventory: variant.inventory || 0,
-        image: variant.image,
-        title: variant.title || "",
-    }));
-    console.log("================ Test Array =======================", testArray);
     try {
         const newBundle = await prisma.bundle.create({
             data: {
@@ -30,6 +18,7 @@ export async function createBundle(data: any) {
                     create: data.variants.map((variant: any) => ({
                         id: variant.id,
                         varId: variant.varId,
+                        productId: variant.productId,
                         displayName: variant.displayName,
                         price: variant.price,
                         quantityNeeded: 1,
