@@ -106,7 +106,7 @@ export async function updateBundle(ID: any, data: any) {
                         varId: variant.varId,
                         displayName: variant.displayName,
                         price: variant.price,
-                        quantityNeeded: 1,
+                        quantityNeeded: variant.quantityNeeded,
                         inventory: variant.inventory || 0,
                         image: variant.image,
                         title: variant.title || "",
@@ -120,7 +120,7 @@ export async function updateBundle(ID: any, data: any) {
                         title: accessory.title,
                         price: accessory.price || 0.00,
                         productType: "accessories",
-                        quantityNeeded: 1,
+                        quantityNeeded: accessory.quantityNeeded,
                         totalInventory: accessory.totalInventory,
                         image: accessory.image || "",
                     }))

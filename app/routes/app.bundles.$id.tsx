@@ -1,16 +1,18 @@
 import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/node"
 import { useFetcher, useLoaderData } from "@remix-run/react";
-import { BlockStack, Card, EmptyState, FormLayout, Layout, Page, TextField, Text, InlineGrid, InlineStack, Thumbnail, Icon } from "@shopify/polaris";
+import { BlockStack, Card, EmptyState, FormLayout, Layout, Page, TextField, Text, InlineGrid, InlineStack, Thumbnail, Icon, ButtonGroup, Button } from "@shopify/polaris";
 import { useCallback, useEffect, useState } from "react";
 import { getBundleById, updateBundle } from "~/models/Bundle.server";
 import { transformAccessoryData, transformVariantData } from "~/utils/transform";
-import { XIcon } from '@shopify/polaris-icons';
+import { isDifferent } from "~/utils/isDifferent";
+import { XIcon, PlusIcon } from '@shopify/polaris-icons';
 
 export async function loader({ params }: LoaderFunctionArgs) {
 
     const bundle = await getBundleById(params.id);
 
-    return json(bundle)
+    return json(bundle);
+
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -19,15 +21,16 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const dataEntry = formData.get('data');
     const bundleId = params.id;
 
+
+
     if (typeof dataEntry === "string") {
         const data = JSON.parse(dataEntry);
+        console.log(data)
 
         updateBundle(bundleId, data);
     } else {
         throw new Error("Invalid form data when updating the bundle");
     }
-
-
 
     return json({})
 }
@@ -35,16 +38,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 const BundleDetail = () => {
     const bundle = useLoaderData<any>();
-    const [formData, setFormData] = useState({ title: "", slug: "" });
-    const [variants, setVariants] = useState<any>([]);
-    const [accessories, setAccessories] = useState<any>([]);
+    const [formData, setFormData] = useState({ title: bundle.title, slug: bundle.slug });
+    const [variants, setVariants] = useState<any>(bundle.variants);
+    const [accessories, setAccessories] = useState<any>(bundle.accessories);
+    const [isChanged, setIsChanged] = useState(false)
 
     const fetcher = useFetcher();
 
     useEffect(() => {
-        setFormData({ title: bundle.title, slug: bundle.slug });
-        setVariants(bundle.variants);
-        setAccessories(bundle.accessories);
     }, [bundle]);
 
     const showVariants = useCallback(async () => {
@@ -86,6 +87,8 @@ const BundleDetail = () => {
             accessories,
         };
 
+        console.log("DATA TO SEND ==============================>", data)
+
         const formDataToSend = new FormData();
         formDataToSend.append('data', JSON.stringify(data));
 
@@ -96,6 +99,20 @@ const BundleDetail = () => {
 
         shopify.toast.show("Bundle updated");
     }
+
+    const handleVariantsChange = (value: any, variantId: any) => {
+        const newVariants = variants.map((variant: any) =>
+            variant.id === variantId ? { ...variant, quantityNeeded: parseInt(value) } : variant
+        );
+        setVariants(newVariants);
+    };
+
+    const handleAccessoriesChange = (value: any, accessoryId: any) => {
+        const newAccessories = accessories.map((accessory: any) =>
+            accessory.id === accessoryId ? { ...accessory, quantityNeeded: parseInt(value) } : accessory
+        );
+        setAccessories(newAccessories);
+    };
 
     return (
         <Page
@@ -167,8 +184,8 @@ const BundleDetail = () => {
                                             </InlineGrid>
                                         </InlineGrid>
 
-                                        {variants.map((variant: any) => (
-                                            <InlineGrid gap="200" alignItems="center" columns={2}>
+                                        {variants.map((variant: any, index: any) => (
+                                            <InlineGrid key={variant.id} gap="200" alignItems="center" columns={2}>
                                                 <InlineStack gap="300" blockAlign='center'>
                                                     <Thumbnail
                                                         source="https://burst.shopifycdn.com/photos/black-leather-choker-necklace_373x@2x.jpg"
@@ -191,8 +208,9 @@ const BundleDetail = () => {
                                                             labelHidden
                                                             label="Quantity need"
                                                             autoComplete="off"
-                                                            value="1"
+                                                            value={variant.quantityNeeded}
                                                             type="number"
+                                                            onChange={(value) => handleVariantsChange(value, variant.id)}
                                                         />
                                                         <Text as='p' variant='bodyMd' fontWeight='bold'>
                                                             $ {variant.price}
@@ -215,6 +233,19 @@ const BundleDetail = () => {
 
                                         ))}
                                     </BlockStack>
+                                    <InlineStack align="end">
+                                        <ButtonGroup>
+
+                                            <Button
+                                                icon={PlusIcon}
+                                                variant="primary"
+                                                onClick={() => { }}
+                                                accessibilityLabel="Create shipping label"
+                                            >
+                                                Add more variants
+                                            </Button>
+                                        </ButtonGroup>
+                                    </InlineStack>
                                 </Card>
                             </Layout.Section>
                         )
@@ -284,8 +315,9 @@ const BundleDetail = () => {
                                                             labelHidden
                                                             label="Quantity need"
                                                             autoComplete="off"
-                                                            value="1"
+                                                            value={accessory.quantityNeeded}
                                                             type="number"
+                                                            onChange={(value) => handleAccessoriesChange(value, accessory.id)}
                                                         />
                                                         <Text as='p' variant='bodyMd' fontWeight='bold'>
                                                             $ {accessory.price}
@@ -306,8 +338,21 @@ const BundleDetail = () => {
                                                 </InlineGrid>
                                             </InlineGrid>
 
+
                                         ))}
                                     </BlockStack>
+                                    <InlineStack align="end">
+                                        <ButtonGroup>
+
+                                            <Button
+                                                icon={PlusIcon}
+                                                variant="primary"
+                                                onClick={() => { }}
+                                                accessibilityLabel="Create shipping label"
+                                            >
+                                                Add more accessories                                            </Button>
+                                        </ButtonGroup>
+                                    </InlineStack>
                                 </Card>
                             </Layout.Section>
                         )

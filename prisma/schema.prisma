@@ -34,7 +34,7 @@ model Session {
 model Bundle {
   id          String           @id
   title       String
-  slug        String           
+  slug        String
   variants    ProductVariant[]
   accessories Accessory[]
 }
@@ -43,6 +43,7 @@ model Bundle {
 model ProductVariant {
   id             String    @id
   varId          String
+  productId      String?
   displayName    String
   price          Float
   quantityNeeded Int

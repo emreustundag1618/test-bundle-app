@@ -41,8 +41,7 @@ export default function App() {
     <AppProvider isEmbeddedApp apiKey={apiKey}>
       <NavMenu>
         <Link to="/app" rel="home">Home</Link>
-        <Link to="/app/create-kit">Create new kit</Link>
-        <Link to="/app/edit-kit">Edit sample kit</Link>
+        <Link to="/app/create-kit">Create a kit</Link>
       </NavMenu>
       <Outlet />
     </AppProvider>

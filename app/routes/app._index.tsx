@@ -35,11 +35,8 @@ export async function action({request}: ActionFunctionArgs) {
 
 
 const Bundles = () => {
-  const [rpActive, setRpActive] = useState(false);
-  const [testText, setTestText] = useState("");
+  
   const bundles = useLoaderData<any[]>();
-
-  const shopify = useAppBridge();
 
   const navigate = useNavigate();
 
