@@ -1,11 +1,13 @@
 import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/node"
-import { useFetcher, useLoaderData } from "@remix-run/react";
+import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
 import { BlockStack, Card, EmptyState, FormLayout, Layout, Page, TextField, Text, InlineGrid, InlineStack, Thumbnail, Icon, ButtonGroup, Button } from "@shopify/polaris";
 import { useCallback, useEffect, useState } from "react";
 import { getBundleById, updateBundle } from "~/models/Bundle.server";
-import { transformAccessoryData, transformVariantData } from "~/utils/transform";
 import { isDifferent } from "~/utils/isDifferent";
 import { XIcon, PlusIcon } from '@shopify/polaris-icons';
+import { Bundle } from "~/interfaces/bundle";
+import { Product } from "~/interfaces/product";
+import { transformData } from "~/utils/transform";
 
 export async function loader({ params }: LoaderFunctionArgs) {
 
@@ -37,82 +39,68 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 
 const BundleDetail = () => {
-    const bundle = useLoaderData<any>();
-    const [formData, setFormData] = useState({ title: bundle.title, slug: bundle.slug });
-    const [variants, setVariants] = useState<any>(bundle.variants);
-    const [accessories, setAccessories] = useState<any>(bundle.accessories);
-    const [isChanged, setIsChanged] = useState(false)
+    const bundleData = useLoaderData<Bundle>();
+
+    const [bundle, setBundle] = useState<Bundle>(bundleData);
 
     const fetcher = useFetcher();
+    const navigate = useNavigate();
 
-    useEffect(() => {
-    }, [bundle]);
-
-    const showVariants = useCallback(async () => {
+    const selectProducts = useCallback(async () => {
         try {
-            const selected = await shopify.resourcePicker({ type: 'variant', multiple: true });
-            // Handle the selected product here
-            const transformedVariants = selected?.map(transformVariantData);
-            setVariants(transformedVariants || []);
-        } catch (error) {
-            // Handle any errors that might occur
-            console.error('Error picking variants:', error);
-        }
-    }, []);
-
-    const showAccessories = useCallback(async () => {
-        try {
-            const selected = await shopify.resourcePicker({
-                type: 'product', filter: {
+            const selectedProducts = await shopify.resourcePicker({
+                type: 'product',
+                filter: {
                     hidden: true,
-                    variants: false,
+                    variants: true,
                     draft: false,
                     archived: false,
-                }, multiple: true
+                },
+                multiple: true,
+                action: "select",
+                // selectionIds: bundle.products.length > 0 ? bundle.products.map((product: any) => ({ id: product.id })) : []
             });
-            // Handle the selected product here
-            const transformedAccessories = selected?.map(transformAccessoryData);
-            setAccessories(transformedAccessories || [])
+
+
+            // Here uses the nullish coalescing operator (??) to provide an empty array if selectedProducts is undefined or null.
+            const transformedProducts = (selectedProducts ?? []).map(transformData);
+            setBundle({ ...bundle, products: transformedProducts });
+            // TODO: productlar ilk seçimde bundle ı set etmeden önce component render oluyor.. Neden?
+            // TODO: bundle title setChange edildikten sonra selectProducts useCallback i çağrıldığında title eski şekline dönüyor neden??
         } catch (error) {
-            // Handle any errors that might occur
-            console.error('Error picking accessories:', error);
+            console.error('Error picking products from Shopify:', error);
         }
     }, []);
 
     const handleAction = () => {
-        // This makes an post request to action
-        const data = {
-            formData,
-            variants,
-            accessories,
-        };
-
-        console.log("DATA TO SEND ==============================>", data)
 
         const formDataToSend = new FormData();
-        formDataToSend.append('data', JSON.stringify(data));
+        formDataToSend.append('data', JSON.stringify(bundle));
 
         fetcher.submit(formDataToSend, {
             method: 'post',
             encType: 'multipart/form-data',
+            action: "/app"
         });
 
-        shopify.toast.show("Bundle updated");
+        shopify.toast.show("Bundle created");
     }
 
-    const handleVariantsChange = (value: any, variantId: any) => {
-        const newVariants = variants.map((variant: any) =>
-            variant.id === variantId ? { ...variant, quantityNeeded: parseInt(value) } : variant
-        );
-        setVariants(newVariants);
+    // const handleVariantsChange = (value: any, variantId: any) => {
+    //     const newVariants = variants.map((variant: any) =>
+    //         variant.id === variantId ? { ...variant, quantityNeeded: parseInt(value) } : variant
+    //     );
+    //     setVariants(newVariants);
+    // };
+
+    const handleQuantityChange = (value: number, productId: string) => {
     };
 
-    const handleAccessoriesChange = (value: any, accessoryId: any) => {
-        const newAccessories = accessories.map((accessory: any) =>
-            accessory.id === accessoryId ? { ...accessory, quantityNeeded: parseInt(value) } : accessory
-        );
-        setAccessories(newAccessories);
-    };
+    useEffect(() => {
+        if (fetcher.state === 'idle' && fetcher.data) {
+            setTimeout(() => navigate("/app"), 1000);
+        }
+    }, [fetcher.state, fetcher.data]);
 
     return (
         <Page
@@ -129,25 +117,25 @@ const BundleDetail = () => {
                                     label="Title"
                                     placeholder='Pattern Product Title'
                                     name="title"
-                                    value={formData.title}
-                                    onChange={(value) => setFormData({ ...formData, title: value })}
+                                    value={bundle.title}
+                                    onChange={(value) => setBundle({ ...bundle, title: value })}
                                     autoComplete="off" />
                                 <TextField
                                     label="Slug"
                                     placeholder="A Unique Slug"
                                     name="slug"
-                                    value={formData.slug}
-                                    onChange={(value) => setFormData({ ...formData, slug: value })}
+                                    value={bundle.slug}
+                                    onChange={(value) => setBundle({ ...bundle, slug: value })}
                                     autoComplete="off"
                                 />
                             </FormLayout>
                         </Card>
                     </Layout.Section>
-                    {!(variants.length > 0) ?
+                    {!(bundle.products.length > 0) ?
                         (
                             <Layout.Section>
                                 <Card>
-                                    <EmptyState image={'https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png'} action={{ content: 'Select variants', onAction: showVariants }}>
+                                    <EmptyState image={'https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png'} action={{ content: 'Select variants', onAction: selectProducts }}>
                                         <Text as="p" variant='bodyMd'>Select product variants you want to add to kit</Text>
                                     </EmptyState>
                                 </Card>
@@ -184,8 +172,8 @@ const BundleDetail = () => {
                                             </InlineGrid>
                                         </InlineGrid>
 
-                                        {variants.map((variant: any, index: any) => (
-                                            <InlineGrid key={variant.id} gap="200" alignItems="center" columns={2}>
+                                        {bundle.products.map((product: Product) => (
+                                            <InlineGrid key={product.id} gap="200" alignItems="center" columns={2}>
                                                 <InlineStack gap="300" blockAlign='center'>
                                                     <Thumbnail
                                                         source="https://burst.shopifycdn.com/photos/black-leather-choker-necklace_373x@2x.jpg"
@@ -194,10 +182,7 @@ const BundleDetail = () => {
                                                     />
                                                     <BlockStack>
                                                         <Text variant="bodyMd" fontWeight="bold" as="h3">
-                                                            {variant.title}
-                                                        </Text>
-                                                        <Text variant="bodyMd" as="p">
-                                                            {variant.displayName}
+                                                            {product.title}
                                                         </Text>
                                                     </BlockStack>
                                                 </InlineStack>
@@ -208,12 +193,12 @@ const BundleDetail = () => {
                                                             labelHidden
                                                             label="Quantity need"
                                                             autoComplete="off"
-                                                            value={variant.quantityNeeded}
+                                                            value={String(product.quantityNeeded)}
                                                             type="number"
-                                                            onChange={(value) => handleVariantsChange(value, variant.id)}
+                                                            onChange={(value) => handleQuantityChange(parseInt(value), product.id)}
                                                         />
                                                         <Text as='p' variant='bodyMd' fontWeight='bold'>
-                                                            $ {variant.price}
+                                                            $ {product.price}
                                                         </Text>
                                                     </InlineGrid>
                                                     <InlineGrid columns={2} gap="300" alignItems="center">
@@ -222,7 +207,7 @@ const BundleDetail = () => {
                                                             disabled
                                                             label="Total inventory quantity"
                                                             autoComplete="off"
-                                                            value={variant.inventory}
+                                                            value={String(product.totalInventory)}
                                                             type="number"
                                                         />
                                                         <Icon source={XIcon} />
@@ -239,118 +224,11 @@ const BundleDetail = () => {
                                             <Button
                                                 icon={PlusIcon}
                                                 variant="primary"
-                                                onClick={() => { }}
+                                                onClick={selectProducts}
                                                 accessibilityLabel="Create shipping label"
                                             >
-                                                Add more variants
+                                                Re-select Products
                                             </Button>
-                                        </ButtonGroup>
-                                    </InlineStack>
-                                </Card>
-                            </Layout.Section>
-                        )
-                    }
-                    {!(accessories.length > 0) ?
-                        (
-                            <Layout.Section>
-                                <Card>
-                                    <EmptyState image={'https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png'} action={{ content: 'Select accessories', onAction: showAccessories }}>
-                                        <Text as="p" variant='bodyMd'>Select accessories you want to add to kit</Text>
-                                    </EmptyState>
-                                </Card>
-                            </Layout.Section>
-                        )
-                        :
-                        (
-                            <Layout.Section>
-                                <Card>
-                                    <BlockStack gap="300">
-                                        <InlineGrid gap="200" alignItems="center" columns={2}>
-                                            <Text as='p' variant='bodyMd' fontWeight='bold'>
-                                                Accessory
-                                            </Text>
-
-                                            <InlineGrid columns={2} gap="300" alignItems="center">
-                                                <InlineGrid columns={2} gap="300" alignItems="center">
-                                                    <Text as='p' variant='bodyMd' fontWeight='bold'>
-                                                        Quantity need
-                                                    </Text>
-                                                    <Text as='p' variant='bodyMd' fontWeight='bold'>
-                                                        Price
-                                                    </Text>
-                                                </InlineGrid>
-                                                <InlineGrid columns={2} gap="300" alignItems="center">
-                                                    <Text as='p' variant='bodyMd' fontWeight='bold'>
-                                                        Available
-                                                    </Text>
-                                                    <Text as='p' variant='bodyMd' fontWeight='bold'>
-                                                        Action
-                                                    </Text>
-                                                </InlineGrid>
-
-                                            </InlineGrid>
-                                        </InlineGrid>
-
-                                        {accessories.map((accessory: any) => (
-                                            <InlineGrid gap="200" alignItems="center" columns={2}>
-                                                <InlineStack gap="300" blockAlign='center'>
-                                                    <Thumbnail
-                                                        source="https://burst.shopifycdn.com/photos/black-leather-choker-necklace_373x@2x.jpg"
-                                                        size="large"
-                                                        alt="Black choker necklace"
-                                                    />
-                                                    <BlockStack>
-                                                        <Text variant="bodyMd" fontWeight="bold" as="h3">
-                                                            {accessory.title}
-                                                        </Text>
-                                                        <Text variant="bodyMd" as="p">
-                                                            {accessory.displayName}
-                                                        </Text>
-                                                    </BlockStack>
-                                                </InlineStack>
-
-                                                <InlineGrid columns={2} gap="300" alignItems="center">
-                                                    <InlineGrid columns={2} gap="300" alignItems="center">
-                                                        <TextField
-                                                            labelHidden
-                                                            label="Quantity need"
-                                                            autoComplete="off"
-                                                            value={accessory.quantityNeeded}
-                                                            type="number"
-                                                            onChange={(value) => handleAccessoriesChange(value, accessory.id)}
-                                                        />
-                                                        <Text as='p' variant='bodyMd' fontWeight='bold'>
-                                                            $ {accessory.price}
-                                                        </Text>
-                                                    </InlineGrid>
-                                                    <InlineGrid columns={2} gap="300" alignItems="center">
-                                                        <TextField
-                                                            labelHidden
-                                                            disabled
-                                                            label="Total inventory quantity"
-                                                            autoComplete="off"
-                                                            value={accessory.totalInventory}
-                                                            type="number"
-                                                        />
-                                                        <Icon source={XIcon} />
-                                                    </InlineGrid>
-
-                                                </InlineGrid>
-                                            </InlineGrid>
-
-
-                                        ))}
-                                    </BlockStack>
-                                    <InlineStack align="end">
-                                        <ButtonGroup>
-
-                                            <Button
-                                                icon={PlusIcon}
-                                                variant="primary"
-                                                onClick={() => { }}
-                                                accessibilityLabel="Create shipping label"
-                                            >
-                                                Add more accessories                                            </Button>
                                         </ButtonGroup>
                                     </InlineStack>
                                 </Card>

@@ -3,7 +3,7 @@
 client_id = "f4d04445a027ec1a9c87093458c6b341"
 name = "test-bundle-app"
 handle = "test-bundle-app"
-application_url = "https://intranet-cells-checked-samuel.trycloudflare.com"
+application_url = "https://permits-associate-willow-ada.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://intranet-cells-checked-samuel.trycloudflare.com/auth/callback",
-  "https://intranet-cells-checked-samuel.trycloudflare.com/auth/shopify/callback",
-  "https://intranet-cells-checked-samuel.trycloudflare.com/api/auth/callback"
+  "https://permits-associate-willow-ada.trycloudflare.com/auth/callback",
+  "https://permits-associate-willow-ada.trycloudflare.com/auth/shopify/callback",
+  "https://permits-associate-willow-ada.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

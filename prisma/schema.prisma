@@ -32,35 +32,34 @@ model Session {
 }
 
 model Bundle {
-  id          String           @id
-  title       String
-  slug        String
-  variants    ProductVariant[]
-  accessories Accessory[]
+  id             String           @id
+  title          String
+  slug           String
+  products       Product[]
 }
 
 // This is for SELECT VARIANTS section
-model ProductVariant {
-  id             String    @id
-  varId          String
-  productId      String?
-  displayName    String
-  price          Float
-  quantityNeeded Int
-  inventory      Int
-  image          String
-  title          String
-  createdAt      DateTime?
-  updatedAt      DateTime?
+// model ProductVariant {
+//   id             String    @id
+//   varId          String
+//   productId      String?
+//   displayName    String
+//   price          Float
+//   quantityNeeded Int
+//   inventory      Int
+//   image          String
+//   title          String
+//   createdAt      DateTime?
+//   updatedAt      DateTime?
 
-  // Define the relationship with Product
-  // product Product @relation(fields: [productId], references: [id])
-  // productId String
+//   // Define the relationship with Product
+//   // product Product @relation(fields: [productId], references: [id])
+//   // productId String
 
-  // Define the relationships with Bundle
-  bundle   Bundle? @relation(fields: [bundleId], references: [id])
-  bundleId String?
-}
+//   // Define the relationships with Bundle
+//   bundle   Bundle? @relation(fields: [bundleId], references: [id])
+//   bundleId String?
+// }
 
 // Only for creating relationship to ProductVariant
 // Maybe its not necessary
@@ -76,25 +75,58 @@ model ProductVariant {
 // }
 
 // This is for SELECT ACCESSORIES section
-model Accessory {
+// model Accessory {
+//   id             String    @id
+//   accId          String
+//   title          String
+//   price          Float
+//   productType    String
+//   quantityNeeded Int
+//   totalInventory Int
+//   image          String
+//   createdAt      DateTime?
+//   updatedAt      DateTime?
+
+//   // Define the relationships with Bundle
+//   bundle   Bundle? @relation(fields: [bundleId], references: [id])
+//   bundleId String?
+// }
+
+// This is for SELECT ACCESSORIES section
+model Product {
   id             String    @id
-  accId          String
+  proId          String
   title          String
   price          Float
   productType    String
   quantityNeeded Int
   totalInventory Int
-  image          String
+  image          String?
   createdAt      DateTime?
   updatedAt      DateTime?
+  variants       Variant[]
 
   // Define the relationships with Bundle
   bundle   Bundle? @relation(fields: [bundleId], references: [id])
   bundleId String?
 }
 
-model TestModel {
-  id    String @id
-  title String
-  slug  String
+model Variant {
+  id             String    @id
+  varId          String
+  title          String
+  price          Float
+  quantityNeeded Int
+  inventory      Int
+  image          String?
+  createdAt      DateTime?
+  updatedAt      DateTime?
+
+  // Define the relationship with Product
+  // product Product @relation(fields: [productId], references: [id])
+  // productId String
+
+  // Define the relationships with Bundle
+  product   Product? @relation(fields: [productId], references: [id])
+  productId String?
 }

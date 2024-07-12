@@ -1,43 +1,54 @@
 import { json } from "@remix-run/node";
 import prisma from "../db.server";
 import { v4 as uuidv4 } from 'uuid';
+import { Product } from "~/interfaces/product";
+import { Variant } from "~/interfaces/variant";
+import { Bundle } from "~/interfaces/bundle";
 
 function generateUniqueId() {
     return uuidv4();
 }
 
-
-export async function createBundle(data: any) {
+export async function createBundle(bundle: Bundle) {
     try {
         const newBundle = await prisma.bundle.create({
             data: {
                 id: generateUniqueId(),
-                title: data.formData.title,
-                slug: data.formData.slug,
-                variants: {
-                    create: data.variants.map((variant: any) => ({
-                        id: variant.id,
-                        varId: variant.varId,
-                        productId: variant.productId,
-                        displayName: variant.displayName,
-                        price: variant.price,
-                        quantityNeeded: 1,
-                        inventory: variant.inventory || 0,
-                        image: variant.image,
-                        title: variant.title || "",
-                    }))
-                },
-                accessories: {
-                    create: data.accessories.map((accessory: any) => ({
-                        id: accessory.id,
-                        accId: accessory.accId,
-                        title: accessory.title,
-                        price: accessory.price || 0.00,
-                        productType: "accessories",
-                        quantityNeeded: 1,
-                        totalInventory: accessory.totalInventory,
-                        image: accessory.image || "",
-                    }))
+                title: bundle.title,
+                slug: bundle.slug,
+                products: {
+                    create: bundle.products.map((product: Product) => {
+                        return {
+                            id: generateUniqueId(),
+                            proId: product.proId,
+                            title: product.title,
+                            productType: product.productType,
+                            price: product.price,
+                            totalInventory: product.totalInventory,
+                            image: product.image || "",
+                            quantityNeeded: product.quantityNeeded,
+                            variants: {
+                                create: product.variants.map((variant: Variant) => {
+                                    return {
+                                        id: generateUniqueId(),
+                                        varId: variant.varId,
+                                        title: variant.title,
+                                        price: variant.price,
+                                        quantityNeeded: variant.quantityNeeded,
+                                        inventory: variant.inventory,
+                                        image: variant.image || ""
+                                    }
+                                })
+                            }
+                        }
+                    })
+                }
+            },
+            include: {
+                products: {
+                    include: {
+                        variants: true
+                    }
                 }
             }
         });
@@ -56,7 +67,13 @@ export async function getBundleById(ID: any) {
             where: {
                 id: ID
             },
-            include: { variants: true, accessories: true}
+            include: { 
+                products: {
+                    include: {
+                        variants: true
+                    }
+                }  
+            }
         });
         await prisma.$disconnect();
         return bundle
@@ -79,42 +96,44 @@ export async function getBundles() {
     }
 }
 
-export async function updateBundle(ID: any, data: any) {
+export async function updateBundle(ID: any, bundle: Bundle) {
     try {
         const updatedBundle = await prisma.bundle.update({
             where: {
                 id: ID
             },
             data: {
-                title: data.formData.title,
-                slug: data.formData.slug,
-                variants: {
+                title: bundle.title,
+                slug: bundle.slug,
+                products: {
                     deleteMany: {}, // Delete existing variants
-                    create: data.variants.map((variant: any) => ({
-                        id: variant.id,
-                        varId: variant.varId,
-                        displayName: variant.displayName,
-                        price: variant.price,
-                        quantityNeeded: variant.quantityNeeded,
-                        inventory: variant.inventory || 0,
-                        image: variant.image,
-                        title: variant.title || "",
-                    }))
+                    create: bundle.products.map((product: Product) => {
+                        return {
+                            id: generateUniqueId(),
+                            proId: product.proId,
+                            title: product.title,
+                            productType: product.productType,
+                            price: product.price,
+                            totalInventory: product.totalInventory,
+                            image: product.image || "",
+                            quantityNeeded: product.quantityNeeded,
+                            variants: {
+                                deleteMany: {}, // Delete existing variants
+                                create: product.variants.map((variant: Variant) => {
+                                    return {
+                                        id: generateUniqueId(),
+                                        varId: variant.varId,
+                                        title: variant.title,
+                                        price: variant.price,
+                                        quantityNeeded: variant.quantityNeeded,
+                                        inventory: variant.inventory,
+                                        image: variant.image || ""
+                                    }
+                                })
+                            }
+                        }
+                    })
                 },
-                accessories: {
-                    deleteMany: {}, // Delete existing variants
-                    create: data.accessories.map((accessory: any) => ({
-                        id: accessory.id,
-                        accId: accessory.accId,
-                        title: accessory.title,
-                        price: accessory.price || 0.00,
-                        productType: "accessories",
-                        quantityNeeded: accessory.quantityNeeded,
-                        totalInventory: accessory.totalInventory,
-                        image: accessory.image || "",
-                    }))
-                }
-
             }
         })
         await prisma.$disconnect();

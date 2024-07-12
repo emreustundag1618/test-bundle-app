@@ -7,7 +7,7 @@ export interface Product {
     productType: string,
     price: number,
     totalInventory: number,
-    images?: any,
+    image?: string,
     quantityNeeded: number,
     variants: Variant[]
 }

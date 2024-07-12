@@ -33,7 +33,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const data = JSON.parse(dataEntry);
 
     // Process the data, e.g., save to database
-    await createBundle(data);
+    // await createBundle(data);
 
     return json(data);
   } else {
