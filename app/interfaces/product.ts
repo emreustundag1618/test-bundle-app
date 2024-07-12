@@ -1,13 +1,13 @@
 import { Variant } from "./variant"
 
 export interface Product {
-    id: String,
-    proId: String,
-    title: String,
-    productType: String,
-    price: Number,
-    totalInventory: Number,
-    image: String,
-    quantityNeeded: Number,
+    id: string,
+    proId: string,
+    title: string,
+    productType: string,
+    price: number,
+    totalInventory: number,
+    images?: any,
+    quantityNeeded: number,
     variants: Variant[]
 }

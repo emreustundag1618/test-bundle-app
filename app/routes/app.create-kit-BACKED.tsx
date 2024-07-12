@@ -156,7 +156,9 @@ const CreateKit = () => {
             (
               <Layout.Section>
                 <Card>
-                  <EmptyState image={'https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png'} action={{ content: 'Select variants', onAction: showVariants }}>
+                  <EmptyState image={'https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png'} 
+                  action={{ content: 'Select variants', 
+                  onAction: showVariants }}>
                     <Text as="p" variant='bodyMd'>Select product variants you want to add to kit</Text>
                   </EmptyState>
                 </Card>

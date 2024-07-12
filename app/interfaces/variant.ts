@@ -1,10 +1,9 @@
 export interface Variant {
-    id: String,
-    varId: String,
-    displayName: String,
-    title: String,
-    price: Number,
-    quantityNeeded: Number,
-    inventory: Number,
-    image: String
+    id: string,
+    varId: string,
+    title: string,
+    price: number,
+    quantityNeeded: number,
+    inventory: number,
+    image?: string
 }

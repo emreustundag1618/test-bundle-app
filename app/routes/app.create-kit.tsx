@@ -4,13 +4,44 @@ import { useAppBridge } from '@shopify/app-bridge-react';
 import { EmptyState, Page, Layout, BlockStack, Card, Text, TextField, FormLayout, ResourceList, ResourceItem, Avatar, Thumbnail, InlineStack, Bleed, InlineGrid, Icon, ButtonGroup, Button } from '@shopify/polaris';
 import { useCallback, useEffect, useState } from 'react';
 import { createBundle, getBundleById, updateBundle, deleteBundle } from '~/models/Bundle.server';
-import { transformVariantData, transformAccessoryData } from '~/utils/transform';
+import { transformVariantData, transformAccessoryData, transformData } from '~/utils/transform';
 import { XIcon, PlusIcon } from '@shopify/polaris-icons';
+import { Bundle } from '~/interfaces/bundle';
+import { authenticate } from '~/shopify.server';
 
+export async function loader({ request }: LoaderFunctionArgs) {
+  // Here we can get ready-to-use data before component renders. For example in edit page we get data from db and fill the form with this data 
+
+  await authenticate.admin(request);
+
+  return null;
+}
 
 
 const CreateKit = () => {
-  const [formData, setFormData] = useState({ id: "", title: "", slug: "", products: [] });
+  const [bundle, setBundle] = useState<Bundle>({ id: "", title: "", slug: "", products: [] });
+
+  const selectProducts = useCallback(async () => {
+    try {
+      const selectedProducts = await shopify.resourcePicker({
+        type: 'product',
+        filter: {
+          hidden: true,
+          variants: true,
+          draft: false,
+          archived: false,
+        },
+        multiple: true,
+        action: "select",
+        selectionIds: bundle.products.length > 0 ? bundle.products.map((accessory: any) => ({ id: accessory.accId })) : []
+      });
+      console.log(selectedProducts)
+      // const transformedProducts = selectedProducts?.map(transformData);
+      // setBundle({...bundle, products: transformedProducts})
+    } catch (error) {
+      
+    }
+  }, [])
 
 
   return (
@@ -31,29 +62,29 @@ const CreateKit = () => {
               label="Title"
               placeholder='Pattern Product Title'
               name="title"
-              value={formData.title}
-              onChange={(value) => setFormData({ ...formData, title: value })}
+              value={bundle.title}
+              onChange={(value) => setBundle({ ...bundle, title: value })}
               autoComplete="off"
             />
             <TextField
               label="Slug"
               placeholder="A Unique Slug"
               name="slug"
-              value={formData.slug}
-              onChange={(value) => setFormData({ ...formData, slug: value })}
+              value={bundle.slug}
+              onChange={(value) => setBundle({ ...bundle, slug: value })}
               autoComplete="off"
             />
           </FormLayout>
         </Card>
 
         {/* Empty state */}
-        {!(formData.products.length > 9) ? (
+        {!(bundle.products.length > 9) ? (
           <Card>
             <EmptyState
               image={'https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png'}
               action={{
                 content: 'Select products',
-                onAction: (() => { })
+                onAction: selectProducts
               }}>
               <Text as="p" variant='bodyMd'>Select products you want to add to kit</Text>
             </EmptyState>
@@ -87,7 +118,7 @@ const CreateKit = () => {
                 </InlineGrid>
               </InlineGrid>
 
-              {formData.products.map((variant: any) => (
+              {bundle.products.map((variant: any) => (
                 <InlineGrid key={variant.id} gap="200" alignItems="center" columns={2}>
                   <InlineStack gap="300" blockAlign='center'>
                     <Thumbnail
@@ -141,7 +172,7 @@ const CreateKit = () => {
                 <Button
                   icon={PlusIcon}
                   variant="primary"
-                  onClick={showVariants}
+                  onClick={selectProducts}
                   accessibilityLabel="Create shipping label"
                 >
                   Add more variants
