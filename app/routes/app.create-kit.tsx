@@ -90,6 +90,8 @@ const CreateKit = () => {
     }
   }, [fetcher.state, fetcher.data]);
 
+  // TODO: Component will be renewed
+
 
   return (
     <Page

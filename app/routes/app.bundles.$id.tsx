@@ -102,6 +102,7 @@ const BundleDetail = () => {
         }
     }, [fetcher.state, fetcher.data]);
 
+    // TODO: Component will be renewed
     return (
         <Page
             title={bundle.title}
