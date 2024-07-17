@@ -7,7 +7,7 @@ import { NavMenu } from "@shopify/app-bridge-react";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
 import { authenticate } from "../shopify.server";
-import { createBundle } from "~/models/Bundle.server";
+import { createBundle, deleteBundle } from "~/models/Bundle.server";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
@@ -17,21 +17,34 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return json({ apiKey: process.env.SHOPIFY_API_KEY || "" });
 };
 
-export async function action({request}: ActionFunctionArgs) {
-  
+export async function action({ request }: ActionFunctionArgs) {
+
   const formData = await request.formData();
   const dataEntry = formData.get('data');
 
-  if (typeof dataEntry === 'string') {
-    const data = JSON.parse(dataEntry);
+  if (request.method === "POST") {
+    if (typeof dataEntry === 'string') {
+      const data = JSON.parse(dataEntry);
 
-    // Process the data, e.g., save to database
-    await createBundle(data);
+      // Process the data, e.g., save to database
+      await createBundle(data);
 
-    return json(data);
-  } else {
-    throw new Error("Invalid form data");
+      return json(data);
+    } else {
+      throw new Error("Invalid form data");
+    }
+  } else if (request.method === "DELETE") {
+    const bundleId = formData.get("bundleId");
+    try {
+      await deleteBundle(bundleId);
+      return json({ message: 'Bundle deleted' });
+    } catch (error) {
+      console.error("Error deleting bundle", error);
+      return json({ error: 'Failed to delete bundle' }, { status: 500 });
+    }
   }
+
+
 }
 
 export default function App() {

@@ -145,7 +145,7 @@ export async function updateBundle(ID: any, bundle: Bundle) {
     }
 }
 
-export async function deleteBundle(ID: string) {
+export async function deleteBundle(ID: any) {
     try {
         const deletedBundle = await prisma.bundle.delete({
             where: {
@@ -153,7 +153,7 @@ export async function deleteBundle(ID: string) {
             },
         });
         await prisma.$disconnect();
-        return json({ message: `${deletedBundle.title} bundle updated` })
+        return json({ message: `${deletedBundle.title} bundle deleted` })
     } catch (error) {
         console.error("Error deleting bundle:", error);
         await prisma.$disconnect();

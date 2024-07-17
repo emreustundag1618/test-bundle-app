@@ -1,6 +1,5 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from '@remix-run/node';
 import { useLoaderData, useNavigate } from '@remix-run/react';
-import { useAppBridge } from '@shopify/app-bridge-react';
 import { EmptyState, Page, Layout, BlockStack, Card, Text, IndexTable, useBreakpoints, InlineStack, Thumbnail } from '@shopify/polaris';
 import { useCallback, useEffect, useState } from 'react';
 import { createBundle, getBundles } from '~/models/Bundle.server';
@@ -44,8 +43,15 @@ const Bundles = () => {
     navigate("/app/bundles/" + id)
   }
 
+  const handleAction = () => {
+    navigate("/app/create-kit");
+  }
+
   return (
-    <Page title="Variant Kits">
+    <Page 
+    title="Variant Kits"
+    primaryAction={{ content: "Create", disabled: false, onAction: () => handleAction() }}
+    >
       <BlockStack gap="1000">
         <Layout>
           {!(bundles.length > 0) ? (

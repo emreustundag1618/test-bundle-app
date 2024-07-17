@@ -44,6 +44,7 @@ const CreateKit = () => {
 
   const fetcher = useFetcher();
   const navigate = useNavigate();
+  const shopify = useAppBridge();
 
   const selectProducts = useCallback(async () => {
     try {
@@ -94,6 +95,7 @@ const CreateKit = () => {
 
 
   return (
+    // TODO: handleAction passing not calling will be tried on action
     <Page
       title="Create new kit"
       backAction={{ url: '/app' }}
