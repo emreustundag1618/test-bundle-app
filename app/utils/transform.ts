@@ -53,7 +53,7 @@ export function transformData(shopifyProduct: any): Product {
           price: parseFloat(variant.price),
           quantityNeeded: 1,
           inventory: variant.inventoryQuantity,
-          image: variant.image?.[0]?.originalSrc || ""
+          image: variant.image?.originalSrc || ""
         };
       })
     };

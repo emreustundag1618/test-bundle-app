@@ -9,6 +9,7 @@ import { Bundle } from "~/interfaces/bundle";
 import { Product } from "~/interfaces/product";
 import { transformData } from "~/utils/transform";
 import { useAppBridge, Modal, TitleBar } from "@shopify/app-bridge-react";
+import ProductList from "~/components/ProductList";
 
 export async function loader({ params }: LoaderFunctionArgs) {
 
@@ -23,6 +24,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const formData = await request.formData();
     const dataEntry = formData.get('data');
     const bundleId = params.id;
+    console.log("Bundle Id posted =======================", bundleId)
 
     if (typeof dataEntry === "string") {
         const data = JSON.parse(dataEntry);
@@ -41,16 +43,15 @@ const BundleDetail = () => {
     const bundleData = useLoaderData<Bundle>();
 
     const [bundle, setBundle] = useState<Bundle>(bundleData);
-    // TODO: --- There is a bug when reselecting products. If user clicks re-select button again 
-    // TODO: --- without saving the bundle the old selections will come because of selectedIds not updated. Look at State Snapshot in React!
     const selectedIds = (bundle.products.length > 0) ? bundle.products.map((product: any) => ({ id: product.proId, variants: product.variants.map((variant: any) => ({ id: variant.varId })) })) : [];
 
+    // TODO: ---- Extract state logic into a reducer with useReducer and useContext hook for better modularity and readability. See: https://react.dev/learn/scaling-up-with-reducer-and-context
 
     const fetcher = useFetcher();
     const navigate = useNavigate();
     const shopify = useAppBridge();
 
-    const selectProducts = useCallback(async () => {
+    const selectProducts = async () => {
         try {
             const selectedProducts = await shopify.resourcePicker({
                 type: 'product',
@@ -65,20 +66,20 @@ const BundleDetail = () => {
                 selectionIds: selectedIds
             });
 
-            // TODO: There is a bug after one of the selected variant (not product) removed by checkbox, removed ones are adding to the product list
+            console.log("Selected Products ================", selectedProducts);
 
             // Set bundle state if there is only selectedProducts
             if (selectedProducts) {
+                console.log("selected products", selectedProducts)
                 // Here uses the nullish coalescing operator (??) to provide an empty array if selectedProducts is undefined or null. Maybe not necessary
                 const transformedProducts = (selectedProducts ?? []).map(transformData);
+                console.log("Transformed Products ================", transformedProducts);
                 setBundle({ ...bundle, products: transformedProducts });
             }
-            // TODO: productlar ilk seçimde bundle ı set etmeden önce component render oluyor.. Neden?
-            // TODO: bundle title setChange edildikten sonra selectProducts useCallback i çağrıldığında title eski şekline dönüyor neden??
         } catch (error) {
             console.error('Error picking products from Shopify:', error);
         }
-    }, []);
+    };
 
     const handleAction = () => {
 
@@ -87,8 +88,7 @@ const BundleDetail = () => {
 
         fetcher.submit(formDataToSend, {
             method: 'post',
-            encType: 'multipart/form-data',
-            action: "/app"
+            encType: 'multipart/form-data'
         });
 
         shopify.toast.show("Bundle saved");
@@ -101,7 +101,32 @@ const BundleDetail = () => {
     //     setVariants(newVariants);
     // };
 
-    const handleQuantityChange = (value: number, productId: string) => {
+    const handleQuantityChange = (value: number, variantId: string) => {
+        if (value > 0) {
+            const nextBundle = {
+                ...bundle,
+                products: bundle.products.map(product => {
+                    return {
+                        ...product,
+                        variants: product.variants.map(variant => {
+                            if (variant.id === variantId) {
+                                return {
+                                    ...variant,
+                                    quantityNeeded: value
+                                }
+                            } else {
+                                return variant
+                            }
+
+                        })
+                    }
+                })
+            }
+            setBundle(nextBundle);
+        } else {
+            return
+        }
+
     };
 
     useEffect(() => {
@@ -120,6 +145,10 @@ const BundleDetail = () => {
         });
 
         shopify.toast.show("Bundle deleted");
+    }
+
+    const handleRemoveProduct = (variantId: any) => {
+
     }
 
     // TODO: Component will be renewed
@@ -146,6 +175,7 @@ const BundleDetail = () => {
                     <button onClick={() => shopify.modal.hide('delete-modal')}>No</button>
                 </TitleBar>
             </Modal>
+
             <BlockStack>
                 <Layout>
                     <Layout.Section>
@@ -184,106 +214,7 @@ const BundleDetail = () => {
                         )
                         :
                         (
-                            <Layout.Section>
-                                <Card>
-                                    <BlockStack gap="300">
-                                        <InlineGrid gap="200" columns={['oneThird', 'twoThirds']}>
-                                            <Text as='p' variant='bodyMd' fontWeight='bold'>
-                                                Product
-                                            </Text>
-
-                                            <InlineGrid columns={5} gap="300" alignItems="end">
-                                                <Text as='p' variant='bodyMd' fontWeight='bold'>
-                                                    Type
-                                                </Text>
-
-                                                <Text as='p' variant='bodyMd' fontWeight='bold'>
-                                                    Quantity need
-                                                </Text>
-                                                <Text as='p' variant='bodyMd' fontWeight='bold'>
-                                                    Price
-                                                </Text>
-
-                                                <Text as='p' variant='bodyMd' fontWeight='bold'>
-                                                    Available
-                                                </Text>
-                                                <Text as='p' variant='bodyMd' fontWeight='bold'>
-                                                    Action
-                                                </Text>
-
-
-                                            </InlineGrid>
-                                        </InlineGrid>
-
-                                        {bundle.products.map((product: any) => {
-                                            return product.variants.map((variant: any) => (
-                                                (
-                                                    <InlineGrid key={product.id} gap="200" alignItems="center" columns={['oneThird', 'twoThirds']}>
-                                                        <InlineStack gap="300" blockAlign='center' wrap={false}>
-                                                            <BlockStack>
-                                                                <Thumbnail
-                                                                    source="https://burst.shopifycdn.com/photos/black-leather-choker-necklace_373x@2x.jpg"
-                                                                    size="large"
-                                                                    alt="Black choker necklace"
-                                                                />
-                                                            </BlockStack>
-                                                            <BlockStack>
-                                                                <Text variant="bodyMd" fontWeight="bold" as="h3">
-                                                                    {product.title}
-                                                                </Text>
-                                                            </BlockStack>
-                                                        </InlineStack>
-
-                                                        <InlineGrid columns={5} gap="300" alignItems="center">
-                                                            <Text as='p' variant='bodyMd'>
-                                                                {product.productType}
-                                                            </Text>
-
-                                                            <TextField
-                                                                labelHidden
-                                                                label="Quantity need"
-                                                                autoComplete="off"
-                                                                value={String(product.quantityNeeded)}
-                                                                type="number"
-                                                                onChange={(value) => handleQuantityChange(parseInt(value), product.id)}
-                                                            />
-                                                            <Text as='p' variant='bodyMd' fontWeight='bold'>
-                                                                $ {variant.price}
-                                                            </Text>
-
-
-                                                            <TextField
-                                                                labelHidden
-                                                                disabled
-                                                                label="Total inventory quantity"
-                                                                autoComplete="off"
-                                                                value={String(variant.inventory)}
-                                                                type="number"
-                                                            />
-                                                            <Icon source={XIcon} />
-
-
-                                                        </InlineGrid>
-                                                    </InlineGrid>
-                                                )
-                                            ))
-                                        })}
-                                    </BlockStack>
-                                    <InlineStack align="end">
-                                        <ButtonGroup>
-
-                                            <Button
-                                                icon={PlusIcon}
-                                                variant="primary"
-                                                onClick={selectProducts}
-                                                accessibilityLabel="Create shipping label"
-                                            >
-                                                Re-select Products
-                                            </Button>
-                                        </ButtonGroup>
-                                    </InlineStack>
-                                </Card>
-                            </Layout.Section>
+                            <ProductList bundle={bundle} onQuantityChange={handleQuantityChange} onSelectProducts={selectProducts} onRemoveProduct={handleRemoveProduct}/>
                         )
                     }
                 </Layout>

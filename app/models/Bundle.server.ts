@@ -67,12 +67,12 @@ export async function getBundleById(ID: any) {
             where: {
                 id: ID
             },
-            include: { 
+            include: {
                 products: {
                     include: {
                         variants: true
                     }
-                }  
+                }
             }
         });
         await prisma.$disconnect();
@@ -98,17 +98,34 @@ export async function getBundles() {
 
 export async function updateBundle(ID: any, bundle: Bundle) {
     try {
-        const updatedBundle = await prisma.bundle.update({
-            where: {
-                id: ID
-            },
-            data: {
-                title: bundle.title,
-                slug: bundle.slug,
-                products: {
-                    deleteMany: {}, // Delete existing variants
-                    create: bundle.products.map((product: Product) => {
-                        return {
+        const updatedBundle = await prisma.$transaction(async (prisma) => {
+            // Step 1: Delete existing variants
+            await prisma.variant.deleteMany({
+                where: {
+                    productId: {
+                        in: (await prisma.product.findMany({
+                            where: { bundleId: ID },
+                            select: { id: true }
+                        })).map(product => product.id)
+                    }
+                }
+            });
+        
+            // Step 2: Delete existing products
+            await prisma.product.deleteMany({
+                where: { bundleId: ID }
+            });
+        
+            // Step 3: Update the bundle with new products and variants
+            const updatedBundle = await prisma.bundle.update({
+                where: {
+                    id: ID
+                },
+                data: {
+                    title: bundle.title,
+                    slug: bundle.slug,
+                    products: {
+                        create: bundle.products.map((product: Product) => ({
                             id: generateUniqueId(),
                             proId: product.proId,
                             title: product.title,
@@ -118,24 +135,24 @@ export async function updateBundle(ID: any, bundle: Bundle) {
                             image: product.image || "",
                             quantityNeeded: product.quantityNeeded,
                             variants: {
-                                deleteMany: {}, // Delete existing variants
-                                create: product.variants.map((variant: Variant) => {
-                                    return {
-                                        id: generateUniqueId(),
-                                        varId: variant.varId,
-                                        title: variant.title,
-                                        price: variant.price,
-                                        quantityNeeded: variant.quantityNeeded,
-                                        inventory: variant.inventory,
-                                        image: variant.image || ""
-                                    }
-                                })
+                                create: product.variants.map((variant: Variant) => ({
+                                    id: generateUniqueId(),
+                                    varId: variant.varId,
+                                    title: variant.title,
+                                    price: variant.price,
+                                    quantityNeeded: variant.quantityNeeded,
+                                    inventory: variant.inventory,
+                                    image: variant.image || ""
+                                }))
                             }
-                        }
-                    })
-                },
-            }
-        })
+                        }))
+                    },
+                }
+            });
+        
+            return updatedBundle;
+        });
+        
         await prisma.$disconnect();
         return json({ message: `${updatedBundle.title} bundle updated` })
     } catch (error) {
