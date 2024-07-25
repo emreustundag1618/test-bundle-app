@@ -3,7 +3,7 @@
 client_id = "f4d04445a027ec1a9c87093458c6b341"
 name = "test-bundle-app"
 handle = "test-bundle-app"
-application_url = "https://worried-depending-advisory-lone.trycloudflare.com"
+application_url = "https://markets-shield-unto-committed.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://worried-depending-advisory-lone.trycloudflare.com/auth/callback",
-  "https://worried-depending-advisory-lone.trycloudflare.com/auth/shopify/callback",
-  "https://worried-depending-advisory-lone.trycloudflare.com/api/auth/callback"
+  "https://markets-shield-unto-committed.trycloudflare.com/auth/callback",
+  "https://markets-shield-unto-committed.trycloudflare.com/auth/shopify/callback",
+  "https://markets-shield-unto-committed.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
