@@ -14,12 +14,13 @@ export async function createBundle(bundle: Bundle) {
         const newBundle = await prisma.bundle.create({
             data: {
                 id: generateUniqueId(),
+                shopifyId: bundle.shopifyId,
                 title: bundle.title,
                 slug: bundle.slug,
                 products: {
                     create: bundle.products.map((product: Product) => {
                         return {
-                            id: generateUniqueId(),
+                            id: product.id,
                             proId: product.proId,
                             title: product.title,
                             productType: product.productType,
@@ -30,7 +31,7 @@ export async function createBundle(bundle: Bundle) {
                             variants: {
                                 create: product.variants.map((variant: Variant) => {
                                     return {
-                                        id: generateUniqueId(),
+                                        id: variant.id,
                                         varId: variant.varId,
                                         title: variant.title,
                                         price: variant.price,
@@ -86,7 +87,15 @@ export async function getBundleById(ID: any) {
 
 export async function getBundles() {
     try {
-        const bundles = await prisma.bundle.findMany({});
+        const bundles = await prisma.bundle.findMany({
+            include: {
+                products: {
+                    include: {
+                        variants: true
+                    }
+                },
+            }
+        });
         await prisma.$disconnect();
         return bundles
     } catch (error) {
@@ -168,6 +177,13 @@ export async function deleteBundle(ID: any) {
             where: {
                 id: ID,
             },
+            include: {
+                products: {
+                  include: {
+                    variants: true,
+                  },
+                },
+              },
         });
         await prisma.$disconnect();
         return json({ message: `${deletedBundle.title} bundle deleted` })

@@ -33,66 +33,12 @@ model Session {
 
 model Bundle {
   id             String           @id
+  shopifyId      String
   title          String
   slug           String
   products       Product[]
 }
 
-// This is for SELECT VARIANTS section
-// model ProductVariant {
-//   id             String    @id
-//   varId          String
-//   productId      String?
-//   displayName    String
-//   price          Float
-//   quantityNeeded Int
-//   inventory      Int
-//   image          String
-//   title          String
-//   createdAt      DateTime?
-//   updatedAt      DateTime?
-
-//   // Define the relationship with Product
-//   // product Product @relation(fields: [productId], references: [id])
-//   // productId String
-
-//   // Define the relationships with Bundle
-//   bundle   Bundle? @relation(fields: [bundleId], references: [id])
-//   bundleId String?
-// }
-
-// Only for creating relationship to ProductVariant
-// Maybe its not necessary
-// model Product {
-//   id String @id
-//   title String @map("product_title")
-//   image String @map("featured_image")
-//   createdAt DateTime?
-//   updatedAt DateTime?
-
-//   // Define the relationship with ProductVariant
-//   variants ProductVariant[]
-// }
-
-// This is for SELECT ACCESSORIES section
-// model Accessory {
-//   id             String    @id
-//   accId          String
-//   title          String
-//   price          Float
-//   productType    String
-//   quantityNeeded Int
-//   totalInventory Int
-//   image          String
-//   createdAt      DateTime?
-//   updatedAt      DateTime?
-
-//   // Define the relationships with Bundle
-//   bundle   Bundle? @relation(fields: [bundleId], references: [id])
-//   bundleId String?
-// }
-
-// This is for SELECT ACCESSORIES section
 model Product {
   id             String    @id
   proId          String
@@ -107,7 +53,7 @@ model Product {
   variants       Variant[]
 
   // Define the relationships with Bundle
-  bundle   Bundle? @relation(fields: [bundleId], references: [id])
+  bundle   Bundle? @relation(fields: [bundleId], references: [id], onDelete: Cascade)
   bundleId String?
 }
 
@@ -123,10 +69,6 @@ model Variant {
   updatedAt      DateTime?
 
   // Define the relationship with Product
-  // product Product @relation(fields: [productId], references: [id])
-  // productId String
-
-  // Define the relationships with Bundle
-  product   Product? @relation(fields: [productId], references: [id])
+  product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId String?
 }

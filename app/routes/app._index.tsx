@@ -2,8 +2,13 @@ import { ActionFunctionArgs, LoaderFunctionArgs, json } from '@remix-run/node';
 import { useLoaderData, useNavigate } from '@remix-run/react';
 import { EmptyState, Page, Layout, BlockStack, Card, Text, IndexTable, useBreakpoints, InlineStack, Thumbnail } from '@shopify/polaris';
 import { useCallback, useEffect, useState } from 'react';
+import { Bundle } from '~/interfaces/bundle';
 import { createBundle, getBundles } from '~/models/Bundle.server';
 import { authenticate } from '~/shopify.server';
+import { computeTotalPrice } from '~/utils/totalPrice';
+import {
+  ProductListIcon
+} from '@shopify/polaris-icons';
 
 
 // Must be on app._index.tsx file
@@ -15,27 +20,29 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return json(bundles);
 };
 
-export async function action({request}: ActionFunctionArgs) {
+// export async function action({request}: ActionFunctionArgs) {
   
-  const formData = await request.formData();
-  const dataEntry = formData.get('data');
+//   const formData = await request.formData();
+//   const dataEntry = formData.get('data');
 
-  if (typeof dataEntry === 'string') {
-    const data = JSON.parse(dataEntry);
+//   if (typeof dataEntry === 'string') {
+//     const data = JSON.parse(dataEntry);
 
-    // Process the data, e.g., save to database
-    await createBundle(data);
+//     // Process the data, e.g., save to database
+//     // await createBundle(data);
 
-    return json(data);
-  } else {
-    throw new Error("Invalid form data");
-  }
-}
+//     return json(data);
+//   } else {
+//     throw new Error("Invalid form data");
+//   }
+// }
 
 
 const Bundles = () => {
   
   const bundles = useLoaderData<any[]>();
+
+  console.log("Bundles: ", bundles)
 
   const navigate = useNavigate();
 
@@ -68,7 +75,7 @@ const Bundles = () => {
             </Layout.Section>
           ) : (
             <Layout.Section>
-              <Card>
+              
                 <IndexTable
                   selectable={false}
                   condensed={useBreakpoints().smDown}
@@ -83,43 +90,42 @@ const Bundles = () => {
                     {
                       alignment: 'end',
                       id: 'price',
-                      title: 'Price',
+                      title: 'Total Price',
                     },
                   ]}
                 >
                   {bundles.map(
-                    ({ id, title, slug }, index) => (
+                    (bundle: Bundle, index) => (
                       <IndexTable.Row
-                        id={id}
-                        key={id}
+                        id={bundle.id}
+                        key={bundle.id}
                         position={index}
-                        onClick={() => handleClick(id)}
+                        onClick={() => handleClick(bundle.id)}
                       >
                         <IndexTable.Cell>
                           <InlineStack gap="300" blockAlign='center'>
                             <Thumbnail
-                              source="https://burst.shopifycdn.com/photos/black-leather-choker-necklace_373x@2x.jpg"
+                              source={ProductListIcon}
                               size="medium"
-                              alt="Black choker necklace"
+                              alt="Bundle"
                             />
 
                             <Text variant="bodyMd" fontWeight="bold" as="h3">
-                              {title}
+                              {bundle.title}
                             </Text>
 
                           </InlineStack>
                         </IndexTable.Cell>
-                        <IndexTable.Cell>{slug}</IndexTable.Cell>
+                        <IndexTable.Cell>{bundle.slug}</IndexTable.Cell>
                         <IndexTable.Cell>
                           <Text as="span" alignment="end" numeric>
-                            $0.00
+                            $ {computeTotalPrice(bundle)}
                           </Text>
                         </IndexTable.Cell>
                       </IndexTable.Row>
                     ),
                   )}
                 </IndexTable>
-              </Card>
             </Layout.Section>
           )}
         </Layout>

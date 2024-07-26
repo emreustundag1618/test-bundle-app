@@ -1,14 +1,11 @@
-import { ActionFunctionArgs, json, LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { useFetcher, useLoaderData, useNavigate, useSubmit } from '@remix-run/react';
+import { LoaderFunctionArgs } from '@remix-run/node';
+import { useFetcher, useNavigate, } from '@remix-run/react';
 import { useAppBridge } from '@shopify/app-bridge-react';
-import { EmptyState, Page, Layout, BlockStack, Card, Text, TextField, FormLayout, ResourceList, ResourceItem, Avatar, Thumbnail, InlineStack, Bleed, InlineGrid, Icon, ButtonGroup, Button } from '@shopify/polaris';
-import { useCallback, useEffect, useState } from 'react';
-import { createBundle, getBundleById, updateBundle, deleteBundle } from '~/models/Bundle.server';
+import { EmptyState, Page, Layout, BlockStack, Card, Text, TextField, FormLayout } from '@shopify/polaris';
+import { useEffect, useState } from 'react';
 import { transformData } from '~/utils/transform';
-import { XIcon, PlusIcon } from '@shopify/polaris-icons';
 import { Bundle } from '~/interfaces/bundle';
 import { authenticate } from '~/shopify.server';
-import { Product } from '~/interfaces/product';
 import ProductList from '~/components/ProductList';
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -41,7 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 
 const CreateKit = () => {
-  const [bundle, setBundle] = useState<Bundle>({ id: "", title: "", slug: "", products: [] });
+  const [bundle, setBundle] = useState<Bundle>({ id: "", shopifyId: "", title: "", slug: "", products: [] });
   const selectedIds = (bundle.products.length > 0) ? bundle.products.map((product: any) => ({ id: product.proId, variants: product.variants.map((variant: any) => ({ id: variant.varId })) })) : [];
 
 
@@ -89,7 +86,7 @@ const CreateKit = () => {
       action: "/app"
     });
 
-    shopify.toast.show("Bundle created");
+    shopify.toast.show(`Bundle "${bundle.title}" created.`);
   }
 
   useEffect(() => {
@@ -127,10 +124,6 @@ const CreateKit = () => {
     }
 
   };
-
-  const handleRemoveProduct = (variantId: any) => {
-
-  }
 
 
   return (
@@ -189,7 +182,7 @@ const CreateKit = () => {
               </Card>
             </Layout.Section>
           ) : (
-            <ProductList bundle={bundle} onQuantityChange={handleQuantityChange} onSelectProducts={selectProducts} onRemoveProduct={handleRemoveProduct} />
+            <ProductList bundle={bundle} onQuantityChange={handleQuantityChange} onSelectProducts={selectProducts} />
           )}
 
         </Layout>

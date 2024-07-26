@@ -8,6 +8,7 @@ import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
 import { authenticate } from "../shopify.server";
 import { createBundle, deleteBundle } from "~/models/Bundle.server";
+import { createBundleOnShopify } from "~/actions/createBundleOnShopify";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
@@ -18,15 +19,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export async function action({ request }: ActionFunctionArgs) {
-
+  const { admin } = await authenticate.admin(request);
   const formData = await request.formData();
   const dataEntry = formData.get('data');
 
   if (request.method === "POST") {
     if (typeof dataEntry === 'string') {
       const data = JSON.parse(dataEntry);
+      console.log("Created bundle data=============:", data);
 
-      // Process the data, e.g., save to database
+      
+      const responseJson = await createBundleOnShopify(data, admin);
+      const shopifyId = JSON.parse(JSON.stringify(responseJson)).data.productCreate.product.id;
+      data.shopifyId = shopifyId
       await createBundle(data);
 
       return json(data);
@@ -43,7 +48,6 @@ export async function action({ request }: ActionFunctionArgs) {
       return json({ error: 'Failed to delete bundle' }, { status: 500 });
     }
   }
-
 
 }
 

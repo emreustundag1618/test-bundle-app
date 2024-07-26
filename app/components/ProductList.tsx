@@ -9,13 +9,12 @@ const ProductList = ({ bundle, onQuantityChange, onSelectProducts, onRemoveProdu
             <Card>
                 <BlockStack gap="300">
                     <InlineGrid gap="200" columns={['oneThird', 'twoThirds']}>
-                        <Text as='p' variant='bodyMd' fontWeight='bold'>Product</Text>
-                        <InlineGrid columns={5} gap="300" alignItems="center">
+                        <Text as='p' variant='bodyMd' fontWeight='bold'>Variant</Text>
+                        <InlineGrid columns={4} gap="300" alignItems="center">
                             <Text as='p' variant='bodyMd' fontWeight='bold' alignment="center">Type</Text>
                             <Text as='p' variant='bodyMd' fontWeight='bold' alignment="center">Quantity need</Text>
                             <Text as='p' variant='bodyMd' fontWeight='bold' alignment="center">Price</Text>
                             <Text as='p' variant='bodyMd' fontWeight='bold' alignment="center">Available</Text>
-                            <Text as='p' variant='bodyMd' fontWeight='bold' alignment="center">Action</Text>
                         </InlineGrid>
                     </InlineGrid>
 

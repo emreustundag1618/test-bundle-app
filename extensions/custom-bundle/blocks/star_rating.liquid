@@ -6,13 +6,13 @@
   <br>
   <img src="{{ "thumbs-up.png" | asset_img_url: '15x' }}" height="15" width="15" loading="lazy">
   {{ 'ratings.home.recommendationText' | t }}
-  <p>Hello world</p>
 {% endif %}
 
 {% schema %}
 {
   "name": "Star Rating",
   "target": "section",
+  "javascript": "script.js",
   "settings": [
     { "type": "product", "id": "product", "label": "product", "autofill": true },
     { "type": "color", "id": "colour", "label": "Star Colour", "default": "#ff0000" }

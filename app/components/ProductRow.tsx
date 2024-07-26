@@ -18,7 +18,7 @@ const ProductRow = ({ product, variant, onQuantityChange, onRemoveProduct }: any
                 </BlockStack>
             </InlineStack>
 
-            <InlineGrid columns={5} gap="300" alignItems="center">
+            <InlineGrid columns={4} gap="300" alignItems="center">
                 <Text as='p' variant='bodyMd' alignment="center">{product.productType}</Text>
                 <TextField
                     labelHidden
@@ -37,9 +37,6 @@ const ProductRow = ({ product, variant, onQuantityChange, onRemoveProduct }: any
                     value={String(variant.inventory)}
                     type="number"
                 />
-                <Button variant="plain" tone="critical" onClick={() => onRemoveProduct()}>
-                    Remove
-                </Button>
 
             </InlineGrid>
         </InlineGrid>

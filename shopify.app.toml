@@ -3,7 +3,7 @@
 client_id = "f4d04445a027ec1a9c87093458c6b341"
 name = "test-bundle-app"
 handle = "test-bundle-app"
-application_url = "https://markets-shield-unto-committed.trycloudflare.com"
+application_url = "https://brings-different-fellow-approximate.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://markets-shield-unto-committed.trycloudflare.com/auth/callback",
-  "https://markets-shield-unto-committed.trycloudflare.com/auth/shopify/callback",
-  "https://markets-shield-unto-committed.trycloudflare.com/api/auth/callback"
+  "https://brings-different-fellow-approximate.trycloudflare.com/auth/callback",
+  "https://brings-different-fellow-approximate.trycloudflare.com/auth/shopify/callback",
+  "https://brings-different-fellow-approximate.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

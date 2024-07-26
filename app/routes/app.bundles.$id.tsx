@@ -1,22 +1,16 @@
 import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/node"
 import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
 import { BlockStack, Card, EmptyState, FormLayout, Layout, Page, TextField, Text, InlineGrid, InlineStack, Thumbnail, Icon, ButtonGroup, Button } from "@shopify/polaris";
-import { useCallback, useEffect, useState } from "react";
-import { deleteBundle, getBundleById, updateBundle } from "~/models/Bundle.server";
-import { isDifferent } from "~/utils/isDifferent";
-import { XIcon, PlusIcon } from '@shopify/polaris-icons';
+import { useEffect, useState } from "react";
+import { getBundleById, updateBundle } from "~/models/Bundle.server";
 import { Bundle } from "~/interfaces/bundle";
-import { Product } from "~/interfaces/product";
 import { transformData } from "~/utils/transform";
 import { useAppBridge, Modal, TitleBar } from "@shopify/app-bridge-react";
 import ProductList from "~/components/ProductList";
 
 export async function loader({ params }: LoaderFunctionArgs) {
-
     const bundle = await getBundleById(params.id);
-
     return json(bundle);
-
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -24,7 +18,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const formData = await request.formData();
     const dataEntry = formData.get('data');
     const bundleId = params.id;
-    console.log("Bundle Id posted =======================", bundleId)
 
     if (typeof dataEntry === "string") {
         const data = JSON.parse(dataEntry);
@@ -94,13 +87,6 @@ const BundleDetail = () => {
         shopify.toast.show("Bundle saved");
     }
 
-    // const handleVariantsChange = (value: any, variantId: any) => {
-    //     const newVariants = variants.map((variant: any) =>
-    //         variant.id === variantId ? { ...variant, quantityNeeded: parseInt(value) } : variant
-    //     );
-    //     setVariants(newVariants);
-    // };
-
     const handleQuantityChange = (value: number, variantId: string) => {
         if (value > 0) {
             const nextBundle = {
@@ -147,11 +133,6 @@ const BundleDetail = () => {
         shopify.toast.show("Bundle deleted");
     }
 
-    const handleRemoveProduct = (variantId: any) => {
-
-    }
-
-    // TODO: Component will be renewed
     return (
         <Page
             title={bundle.title}
@@ -214,7 +195,7 @@ const BundleDetail = () => {
                         )
                         :
                         (
-                            <ProductList bundle={bundle} onQuantityChange={handleQuantityChange} onSelectProducts={selectProducts} onRemoveProduct={handleRemoveProduct}/>
+                            <ProductList bundle={bundle} onQuantityChange={handleQuantityChange} onSelectProducts={selectProducts}/>
                         )
                     }
                 </Layout>
