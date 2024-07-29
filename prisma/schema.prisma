@@ -33,7 +33,7 @@ model Session {
 
 model Bundle {
   id             String           @id
-  shopifyId      String
+  shopifyId      String @unique
   title          String
   slug           String
   products       Product[]

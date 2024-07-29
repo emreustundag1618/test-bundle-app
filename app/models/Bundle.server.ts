@@ -193,3 +193,27 @@ export async function deleteBundle(ID: any) {
         return json({ error: "Failed to delete bundle" }, { status: 500 });
     }
 }
+
+export async function getBundleByShopifyId(ID: any) {
+    let fullId = "gid://shopify/Product/" + ID;
+    try {
+        const bundle = await prisma.bundle.findUnique({
+            where: {
+                shopifyId: fullId
+            },
+            include: {
+                products: {
+                    include: {
+                        variants: true
+                    }
+                }
+            }
+        });
+        await prisma.$disconnect();
+        return bundle
+    } catch (error) {
+        console.error("Error getting bundle:", error);
+        await prisma.$disconnect();
+        return json({ error: "Failed to get bundle" }, { status: 500 });
+    }
+}
