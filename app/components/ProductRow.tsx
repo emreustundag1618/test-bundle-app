@@ -1,7 +1,7 @@
 import { BlockStack, InlineGrid, InlineStack, Thumbnail, Text, TextField, Icon, Button } from '@shopify/polaris';
 import { ImageIcon } from '@shopify/polaris-icons';
 
-const ProductRow = ({ product, variant, onQuantityChange, onRemoveProduct }: any) => {
+const ProductRow = ({ product, variant, onQuantityChange }: any) => {
     return (
         <InlineGrid key={product.id} gap="200" alignItems="center" columns={['oneThird', 'twoThirds']}>
             <InlineStack gap="300" blockAlign='center' wrap={false}>

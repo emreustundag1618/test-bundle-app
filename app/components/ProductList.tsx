@@ -1,9 +1,9 @@
 import { BlockStack, Button, ButtonGroup, Card, Icon, InlineGrid, InlineStack, Layout, Text, TextField, Thumbnail } from "@shopify/polaris"
-import { XIcon, PlusIcon } from '@shopify/polaris-icons';
+import { PlusIcon } from '@shopify/polaris-icons';
 import ProductRow from "./ProductRow";
 
 
-const ProductList = ({ bundle, onQuantityChange, onSelectProducts, onRemoveProduct }: any) => {
+const ProductList = ({ bundle, onQuantityChange, onSelectProducts }: any) => {
     return (
         <Layout.Section>
             <Card>
@@ -19,7 +19,7 @@ const ProductList = ({ bundle, onQuantityChange, onSelectProducts, onRemoveProdu
                     </InlineGrid>
 
                     {bundle.products.map((product: any) => product.variants.map((variant: any) => (
-                        <ProductRow key={variant.id} product={product} variant={variant} onQuantityChange={onQuantityChange} onRemoveProduct={onRemoveProduct}/>
+                        <ProductRow key={variant.id} product={product} variant={variant} onQuantityChange={onQuantityChange}/>
                     )))}
                 </BlockStack>
                 <InlineStack align="end">
