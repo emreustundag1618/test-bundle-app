@@ -32,7 +32,7 @@ function App() {
 
     async function fetchBundleData(ID: string) {
       try {
-        const endpoint = "https://nl-balloon-filling-bibliography.trycloudflare.com/api/bundles?shopifyId="
+        const endpoint = "https://relationships-absolute-collectible-particular.trycloudflare.com/api/bundles?shopifyId="
         const response = await fetch(endpoint + ID);
         const json = await response.json();
         setBundle(json.data);

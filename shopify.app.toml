@@ -3,7 +3,7 @@
 client_id = "f4d04445a027ec1a9c87093458c6b341"
 name = "test-bundle-app"
 handle = "test-bundle-app"
-application_url = "https://nl-balloon-filling-bibliography.trycloudflare.com"
+application_url = "https://producing-quantum-respectively-parameters.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://nl-balloon-filling-bibliography.trycloudflare.com/auth/callback",
-  "https://nl-balloon-filling-bibliography.trycloudflare.com/auth/shopify/callback",
-  "https://nl-balloon-filling-bibliography.trycloudflare.com/api/auth/callback"
+  "https://producing-quantum-respectively-parameters.trycloudflare.com/auth/callback",
+  "https://producing-quantum-respectively-parameters.trycloudflare.com/auth/shopify/callback",
+  "https://producing-quantum-respectively-parameters.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
