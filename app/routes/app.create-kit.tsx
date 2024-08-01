@@ -51,7 +51,7 @@ const CreateKit = () => {
       const selectedProducts = await shopify.resourcePicker({
         type: 'product',
         filter: {
-          hidden: true,
+          hidden: false,
           variants: true,
           draft: false,
           archived: false,

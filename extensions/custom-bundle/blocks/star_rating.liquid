@@ -1,71 +1,5 @@
-<div class="custom-bundle-app" id="custom-bundle-app">
-  <h3>Customize Your Pattern</h3>
-  <div class="custom-bundle-products">
-    <div class="custom-variants">
-      <h4 class="custom-variants-title">Select Yarns</h4>
-      <ul class="custom-variant-list">
-        <li class="custom-list-item">
-          <div class="custom-list-item-left">
-            <img src="https://www.yarnspirations.com/cdn/shop/files/E300-0334_small.jpg?v=1715693560" alt="">
-            <div class="product-info">
-              <div class="variant-name">Buff</div>
-              <div class="product-name">Red Heart Super Saver Yarn, Buff</div>
-              <span>In stock</span>
-            </div>
-          </div>
-          <div class="custom-list-item-right">
-            <span class="quantity-label">QTY</span>
-            <input type="number" label="QTY" class="quantity-item">
-            <span class="custom-price">x $4.99</span>
-          </div>
-        </li>
-        <li class="custom-list-item">
-          <div class="custom-list-item-left">
-            <img src="https://www.yarnspirations.com/cdn/shop/files/E300-0334_small.jpg?v=1715693560" alt="">
-            <div class="product-info">
-              <div class="variant-name">Buff</div>
-              <div class="product-name">Red Heart Super Saver Yarn, Buff</div>
-              <span>In stock</span>
-            </div>
-          </div>
-          <div class="custom-list-item-right">
-            <span class="quantity-label">QTY</span>
-            <input type="number" label="QTY" class="quantity-item">
-            <span class="custom-price">x $4.99</span>
-          </div>
-        </li>
-      </ul>
-    </div>
-    <div class="custom-accessories">
-      <h4 class="custom-accessories-title">Select Accessories</h4>
-      <ul class="custom-variant-list">
-        <li class="custom-list-item">
-          <div class="custom-list-item-left">
-            <img src="https://www.yarnspirations.com/cdn/shop/files/E300-0334_small.jpg?v=1715693560" alt="">
-            <div class="product-info">
-              <div class="variant-name">Buff</div>
-              <div class="product-name">Red Heart Super Saver Yarn, Buff</div>
-              <span>In stock</span>
-            </div>
-          </div>
-          <div class="custom-list-item-right">
-            <span class="quantity-label">QTY</span>
-            <input type="number" label="QTY" class="quantity-item">
-            <span class="custom-price">x $4.99</span>
-          </div>
-        </li>
-      </ul>
-    </div>
-  </div>
-  <div class="total-price">
-    <div class="total-price-label">Your price</div>
-    <div class="total-price-amount">$32.94</div>
-  </div>
-  <div class="add-to-cart">
-    <button id="add-to-cart" type="submit">Add to cart</button>
-  </div>
-</div>
-
+<sensy-custom-bundle data-product_id="{{ product.id }}">
+</sensy-custom-bundle>
 
 
 {% comment %} This section includes an example liquid codes {% endcomment %}
@@ -83,13 +17,15 @@
 
 
 {% comment %} Alpine JS import {% endcomment %}
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+
 
 {% schema %}
 {
   "name": "Star Rating",
   "target": "section",
-  "javascript": "script.js",
+  "javascript": "custom_bundle.js",
+  "stylesheet": "custom_bundle.css",
   "settings": [
     { "type": "product", "id": "product", "label": "product", "autofill": true },
     { "type": "color", "id": "colour", "label": "Star Colour", "default": "#ff0000" }

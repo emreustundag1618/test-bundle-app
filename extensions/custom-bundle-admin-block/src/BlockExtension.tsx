@@ -32,7 +32,7 @@ function App() {
 
     async function fetchBundleData(ID: string) {
       try {
-        const endpoint = "https://relationships-absolute-collectible-particular.trycloudflare.com/api/bundles?shopifyId="
+        const endpoint = "https://phd-body-excellent-surgeon.trycloudflare.com/api/bundles?shopifyId="
         const response = await fetch(endpoint + ID);
         const json = await response.json();
         setBundle(json.data);
@@ -81,7 +81,7 @@ function App() {
           return product.variants.map(variant => (
             <InlineStack blockAlignment='center' inlineSize="100%" gap="large">
               <Box blockSize={50} inlineSize="10%">
-                <Image alt="" source={variant.image} />
+                <Image alt="" source={variant.image || product.image} />
               </Box>
               <Box inlineSize="60%">
                 <Text>{variant.title}</Text>
