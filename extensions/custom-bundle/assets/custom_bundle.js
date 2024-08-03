@@ -1,22 +1,29 @@
-
-
-
-const baseUrl = "https://phd-body-excellent-surgeon.trycloudflare.com";
+const baseUrl = "https://submit-historic-allan-azerbaijan.trycloudflare.com";
 
 class CustomBundleApp extends HTMLElement {
 
     constructor() {
         super();
-        this._bundleData = [];
+        this.shopifyDomain = "emre-development-store.myshopify.com";
+        this.storefrontAccessToken = "2febbc203fcc4f4db6e40969eeafdb64"
+        this._bundleData = []; // this will be all data to be fetched remix api
+        this.selectedData = []; // this will include a list of variants to post cart/add for add to cart functionality {id: 123423423, quantity: 2}
+        // TODO: selectedData will be mutated by selecting another variant which is fetched by clicking change color button and opening a modal to choose another variant.
         this.productId = this.dataset.product_id;
         this.endpoint = baseUrl + "/api/bundles?shopifyId=" + this.productId;
 
         this.style.fontSize = "14px";
         this.style.lineHeight = 1.2;
+
+        this.modalOpen = false;
+        console.log("Product id: ", this.productId)
     }
+
+    // TODO: change color functionality and fetch products all variants such as color
 
     async getBundleData() {
         const response = await fetch(this.endpoint);
+        console.log(response)
         const result = await response.json();
         this._bundleData = result.data;
     }
@@ -24,8 +31,55 @@ class CustomBundleApp extends HTMLElement {
     async connectedCallback() {
         console.log("Custom element added to page.");
         await this.getBundleData();
+        await this.getProductsAndVariantsFromShopify(this._bundleData.products.map(product => product.proId.split("/").pop()))
         this.renderBundle();
         document.getElementById('sensy-add-to-cart').addEventListener('click', () => this.addToCart(this._bundleData.products));
+    }
+
+    async getProductsAndVariantsFromShopify(productIds) {
+        const queryString = productIds.map(id => `id:${id}`).join(' OR ');
+        console.log(queryString)
+        const query = `
+        {
+            products(first: 10, query: "${queryString}") {
+                edges {
+                    node {
+                        id
+                        title
+                        variants(first: 25) {
+                            edges {
+                                node {
+                                    id
+                                    title
+                                    price {
+                                        amount
+                                        currencyCode
+                                    }
+                                    sku
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    `;
+
+        try {
+            const response = await fetch(`https://${this.shopifyDomain}/api/2024-07/graphql.json`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Shopify-Storefront-Access-Token': this.storefrontAccessToken
+                },
+                body: JSON.stringify({ query })
+            });
+
+            const data = await response.json();
+            console.log(data.data.products.edges)
+        } catch (error) {
+            console.error("Error while fetching products from shopify: ", error)
+        }
     }
 
     renderBundle() {
@@ -149,6 +203,10 @@ class CustomBundleApp extends HTMLElement {
             .catch((error) => {
                 console.error('Error:', error);
             });
+    }
+
+    renderModal(productId) {
+
     }
 
 }

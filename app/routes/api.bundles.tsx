@@ -2,8 +2,10 @@
 import { json, LoaderFunctionArgs } from "@remix-run/node";
 import { cors } from 'remix-utils/cors';
 import { getBundleByShopifyId } from "~/models/Bundle.server";
+import { authenticate } from "~/shopify.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+    
     const url = new URL(request.url);
     const bundleShopifyID = url.searchParams.get("shopifyId");
   
@@ -21,6 +23,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
       message: "Success",
       data: bundle,
     });
-  
+
     return cors(request, response);
   }

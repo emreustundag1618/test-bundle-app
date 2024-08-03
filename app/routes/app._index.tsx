@@ -13,36 +13,20 @@ import {
 
 // Must be on app._index.tsx file
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
+
+  const { admin } = await authenticate.admin(request);
+  
+  console.log(admin)
 
   const bundles = await getBundles();
 
   return json(bundles);
 };
 
-// export async function action({request}: ActionFunctionArgs) {
-  
-//   const formData = await request.formData();
-//   const dataEntry = formData.get('data');
-
-//   if (typeof dataEntry === 'string') {
-//     const data = JSON.parse(dataEntry);
-
-//     // Process the data, e.g., save to database
-//     // await createBundle(data);
-
-//     return json(data);
-//   } else {
-//     throw new Error("Invalid form data");
-//   }
-// }
-
 
 const Bundles = () => {
-  
-  const bundles = useLoaderData<any[]>();
 
-  console.log("Bundles: ", bundles)
+  const bundles = useLoaderData<any[]>();
 
   const navigate = useNavigate();
 
@@ -55,9 +39,9 @@ const Bundles = () => {
   }
 
   return (
-    <Page 
-    title="Variant Kits"
-    primaryAction={{ content: "Create", disabled: false, onAction: () => handleAction() }}
+    <Page
+      title="Variant Kits"
+      primaryAction={{ content: "Create", disabled: false, onAction: () => handleAction() }}
     >
       <BlockStack gap="1000">
         <Layout>
@@ -75,57 +59,57 @@ const Bundles = () => {
             </Layout.Section>
           ) : (
             <Layout.Section>
-              
-                <IndexTable
-                  selectable={false}
-                  condensed={useBreakpoints().smDown}
-                  resourceName={{
-                    singular: 'bundle',
-                    plural: 'bundles',
-                  }}
-                  itemCount={bundles.length}
-                  headings={[
-                    { title: 'Name' },
-                    { title: 'Slug' },
-                    {
-                      alignment: 'end',
-                      id: 'price',
-                      title: 'Total Price',
-                    },
-                  ]}
-                >
-                  {bundles.map(
-                    (bundle: Bundle, index) => (
-                      <IndexTable.Row
-                        id={bundle.id}
-                        key={bundle.id}
-                        position={index}
-                        onClick={() => handleClick(bundle.id)}
-                      >
-                        <IndexTable.Cell>
-                          <InlineStack gap="300" blockAlign='center'>
-                            <Thumbnail
-                              source={ProductListIcon}
-                              size="medium"
-                              alt="Bundle"
-                            />
 
-                            <Text variant="bodyMd" fontWeight="bold" as="h3">
-                              {bundle.title}
-                            </Text>
+              <IndexTable
+                selectable={false}
+                condensed={useBreakpoints().smDown}
+                resourceName={{
+                  singular: 'bundle',
+                  plural: 'bundles',
+                }}
+                itemCount={bundles.length}
+                headings={[
+                  { title: 'Name' },
+                  { title: 'Slug' },
+                  {
+                    alignment: 'end',
+                    id: 'price',
+                    title: 'Total Price',
+                  },
+                ]}
+              >
+                {bundles.map(
+                  (bundle: Bundle, index) => (
+                    <IndexTable.Row
+                      id={bundle.id}
+                      key={bundle.id}
+                      position={index}
+                      onClick={() => handleClick(bundle.id)}
+                    >
+                      <IndexTable.Cell>
+                        <InlineStack gap="300" blockAlign='center'>
+                          <Thumbnail
+                            source={ProductListIcon}
+                            size="medium"
+                            alt="Bundle"
+                          />
 
-                          </InlineStack>
-                        </IndexTable.Cell>
-                        <IndexTable.Cell>{bundle.slug}</IndexTable.Cell>
-                        <IndexTable.Cell>
-                          <Text as="span" alignment="end" numeric>
-                            $ {computeTotalPrice(bundle)}
+                          <Text variant="bodyMd" fontWeight="bold" as="h3">
+                            {bundle.title}
                           </Text>
-                        </IndexTable.Cell>
-                      </IndexTable.Row>
-                    ),
-                  )}
-                </IndexTable>
+
+                        </InlineStack>
+                      </IndexTable.Cell>
+                      <IndexTable.Cell>{bundle.slug}</IndexTable.Cell>
+                      <IndexTable.Cell>
+                        <Text as="span" alignment="end" numeric>
+                          $ {computeTotalPrice(bundle)}
+                        </Text>
+                      </IndexTable.Cell>
+                    </IndexTable.Row>
+                  ),
+                )}
+              </IndexTable>
             </Layout.Section>
           )}
         </Layout>

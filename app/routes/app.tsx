@@ -53,6 +53,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function App() {
   const { apiKey } = useLoaderData<typeof loader>();
+  console.log(apiKey);
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>

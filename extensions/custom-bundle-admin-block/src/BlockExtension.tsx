@@ -16,6 +16,7 @@ import { useEffect, useState } from 'react';
 
 // The target used here must match the target used in the extension's toml file (./shopify.extension.toml)
 const TARGET = 'admin.product-details.block.render';
+const apiUrl = "https://javascript-tongue-pond-dealt.trycloudflare.com"
 
 
 export default reactExtension(TARGET, () => <App />);
@@ -32,7 +33,7 @@ function App() {
 
     async function fetchBundleData(ID: string) {
       try {
-        const endpoint = "https://phd-body-excellent-surgeon.trycloudflare.com/api/bundles?shopifyId="
+        const endpoint = apiUrl + "/api/bundles?shopifyId=";
         const response = await fetch(endpoint + ID);
         const json = await response.json();
         setBundle(json.data);
