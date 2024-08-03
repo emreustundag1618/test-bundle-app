@@ -1,4 +1,4 @@
-const baseUrl = "https://submit-historic-allan-azerbaijan.trycloudflare.com";
+const baseUrl = "https://continued-clips-holidays-possibility.trycloudflare.com";
 
 class CustomBundleApp extends HTMLElement {
 
@@ -7,8 +7,9 @@ class CustomBundleApp extends HTMLElement {
         this.shopifyDomain = "emre-development-store.myshopify.com";
         this.storefrontAccessToken = "2febbc203fcc4f4db6e40969eeafdb64"
         this._bundleData = []; // this will be all data to be fetched remix api
-        this.selectedData = []; // this will include a list of variants to post cart/add for add to cart functionality {id: 123423423, quantity: 2}
-        // TODO: selectedData will be mutated by selecting another variant which is fetched by clicking change color button and opening a modal to choose another variant.
+        this._shopifyData = []; // this will be all data to be fetched from shopify via storefront api
+        this.transformedData = []; // this will include a list of variants to post cart/add for add to cart functionality {id: 123423423, quantity: 2}
+        // TODO: transformedData will be mutated by selecting another variant which is fetched by clicking change color button and opening a modal to choose another variant.
         this.productId = this.dataset.product_id;
         this.endpoint = baseUrl + "/api/bundles?shopifyId=" + this.productId;
 
@@ -16,46 +17,65 @@ class CustomBundleApp extends HTMLElement {
         this.style.lineHeight = 1.2;
 
         this.modalOpen = false;
-        console.log("Product id: ", this.productId)
+        console.log("Bundle product id: ", this.productId);
     }
 
     // TODO: change color functionality and fetch products all variants such as color
 
     async getBundleData() {
         const response = await fetch(this.endpoint);
-        console.log(response)
         const result = await response.json();
         this._bundleData = result.data;
     }
 
     async connectedCallback() {
-        console.log("Custom element added to page.");
+        // console.log("Custom element added to page.");
         await this.getBundleData();
-        await this.getProductsAndVariantsFromShopify(this._bundleData.products.map(product => product.proId.split("/").pop()))
+        await this.getProductsAndVariantsFromShopify(this._bundleData.products.map(product => product.proId.split("/").pop()));
         this.renderBundle();
         document.getElementById('sensy-add-to-cart').addEventListener('click', () => this.addToCart(this._bundleData.products));
+
+        console.log("Bundle data: ", this._bundleData)
+        mutateData(this._bundleData, this.transformedData);
+        console.log(this.transformedData)
+
+        // test
+        
     }
 
     async getProductsAndVariantsFromShopify(productIds) {
         const queryString = productIds.map(id => `id:${id}`).join(' OR ');
-        console.log(queryString)
         const query = `
         {
             products(first: 10, query: "${queryString}") {
                 edges {
                     node {
                         id
+                        handle
+                        productType
+                        totalInventory
                         title
-                        variants(first: 25) {
+                        featuredImage {
+                            id
+                            url
+                            altText
+                        }
+                        variants(first: 50) {
                             edges {
                                 node {
                                     id
+                                    availableForSale
                                     title
+                                    image {
+                                        altText
+                                        id
+                                        url
+                                    }
                                     price {
                                         amount
                                         currencyCode
                                     }
-                                    sku
+                                    quantityAvailable
                                 }
                             }
                         }
@@ -75,8 +95,9 @@ class CustomBundleApp extends HTMLElement {
                 body: JSON.stringify({ query })
             });
 
-            const data = await response.json();
-            console.log(data.data.products.edges)
+            const shopifyResult = await response.json();
+            this.transformedData = transformShopifyData(shopifyResult.data.products.edges);
+            console.log("Transformed data: ", this.transformedData);
         } catch (error) {
             console.error("Error while fetching products from shopify: ", error)
         }
@@ -85,7 +106,8 @@ class CustomBundleApp extends HTMLElement {
     renderBundle() {
         const yarnList = this._bundleData.products.filter(product => product.productType !== "accessories");
         const accessoryList = this._bundleData.products.filter(product => product.productType === "accessories");
-        console.log(yarnList)
+        console.log("Yarn list: ", yarnList)
+        console.log("Accessory list: ", accessoryList)
         this.innerHTML = `
             <div class="custom-bundle-app" id="custom-bundle-app">
                 <h3 class="custom-bundle-title">Customize Your Pattern</h3>
@@ -212,3 +234,34 @@ class CustomBundleApp extends HTMLElement {
 }
 
 customElements.define("sensy-custom-bundle", CustomBundleApp);
+
+// Transform shopify data fetched from storefront api into clear one
+function transformShopifyData(data) {
+    return data.map(product => {
+        return {
+            id: product.node.id,
+            handle: product.node.handle,
+            title: product.node.title,
+            totalInventory: product.node.totalInventory,
+            featuredImage: product.node.featuredImage,
+            productType: product.node.productType,
+            variants: product.node.variants.edges.map(variant => variant.node)
+        }
+    })
+}
+
+function mutateData(bundle, transformedData){
+    bundle.products.forEach(bundleProduct => {
+        bundleProduct.variants.forEach(bundleVariant => {
+            transformedData.forEach(transformedProduct => {
+                if (transformedProduct.id === bundleProduct.proId) {
+                    transformedProduct.variants.forEach(transformedVariant => {
+                        if (transformedVariant.id === bundleVariant.varId) {
+                            transformedVariant.quantityNeeded = bundleVariant.quantityNeeded;
+                        }
+                    });
+                }
+            });
+        });
+    });
+}
