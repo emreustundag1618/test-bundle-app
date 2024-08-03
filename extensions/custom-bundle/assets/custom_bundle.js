@@ -8,7 +8,7 @@ class CustomBundleApp extends HTMLElement {
         this.storefrontAccessToken = "2febbc203fcc4f4db6e40969eeafdb64"
         this._bundleData = []; // this will be all data to be fetched remix api
         this.transformedData = []; // this will include a list of variants to post cart/add for add to cart functionality
-        this.choosenData = []; // this will include a list of variants to post cart/add for add to cart functionality 
+        this.variantList = []; // this will include a list of variants to post cart/add for add to cart functionality 
         // {id: variantId, quantity: selectedQuantity, quantityNeeded: neededQuantity, inventory: availableForSale}
         // TODO: transformedData will be mutated by selecting another variant which is fetched by clicking change color button and opening a modal to choose another variant.
         this.productId = this.dataset.product_id;
@@ -19,16 +19,18 @@ class CustomBundleApp extends HTMLElement {
 
         this.selectedProductId = "";
         this.selectedVariantId = "";
+        this.modal = "";
+        this.selectedIndex = 0;
         this.modalOpen = false;
         console.log("Bundle product id: ", this.productId);
     }
-
-    // TODO: change color functionality and fetch products all variants such as color
 
     async getBundleData() {
         const response = await fetch(this.endpoint);
         const result = await response.json();
         this._bundleData = result.data;
+        this.setVariantList();
+        console.log("Variant list state: ", this.variantList)
     }
 
     async connectedCallback() {
@@ -42,13 +44,13 @@ class CustomBundleApp extends HTMLElement {
         // initialize modal
         this.initializeModal();
 
-        const modal = document.getElementById('custom-bundle-modal');
+        this.modal = document.getElementById('custom-bundle-modal');
 
         document.getElementById('sensy-add-to-cart').addEventListener('click', () => this.addToCart(this.transformedData));
         const changeColorButtons = document.querySelectorAll('.custom-bundle-change-color');
         changeColorButtons.forEach(button => {
             button.addEventListener('click', (e) => {
-                modal.style.display = 'block';
+                this.modal.style.display = 'block';
                 this.selectedVariantId = e.target.dataset.varId;
                 this.selectedProductId = e.target.parentElement.dataset.proId;
                 this.updateModalContent()
@@ -56,12 +58,12 @@ class CustomBundleApp extends HTMLElement {
         });
         const closeModalButton = document.getElementById('closeModalButton');
         closeModalButton.addEventListener('click', () => {
-            modal.style.display = 'none'
+            this.modal.style.display = 'none'
         });
 
         window.addEventListener('click', (event) => {
-            if (event.target === modal) {
-                modal.style.display = 'none'
+            if (event.target === this.modal) {
+                this.modal.style.display = 'none'
             }
         });
     }
@@ -167,7 +169,7 @@ class CustomBundleApp extends HTMLElement {
 
     renderProducts(productList) {
         let productListHtml = "";
-        productList.forEach(product => {
+        productList.forEach((product, index) => {
             product.variants.forEach(variant => {
                 productListHtml += `
                                 <li class="custom-list-item">
@@ -180,7 +182,8 @@ class CustomBundleApp extends HTMLElement {
                                         ` }
                                     </div>
                                     <div class="product-info" data-pro-id="${product.proId.split('/').pop()}">
-                                        ${product.productType !== "accessories" ? `<span class="custom-bundle-change-color" data-var-id="${variant.varId.split('/').pop()}">Change color</span>` : ``}
+                                        ${product.productType !== "accessories" ? `<span class="custom-bundle-change-color" 
+                                        data-variant-index=${index} data-var-id="${variant.varId.split('/').pop()}">Change color</span>` : ``}
                                         <div class="variant-name">${variant.title} </div>
                                         <div class="product-name">${product.title}</div>
                                         ${variant.inventory === 0 ? `<span>Out of stock</span>` : ""}
@@ -266,43 +269,43 @@ class CustomBundleApp extends HTMLElement {
 
     updateModalContent() {
         console.log("updateModalContent called. ProductId is: ", this.selectedProductId);
-        const selectedProduct = this.transformedData.filter(product => product.id.split('/').pop() === this.selectedProductId)[0];
-        const selectedVariant = this.transformedData
-            .filter(product => product.id.split('/').pop() === this.selectedProductId)
-            .map(product => {
-                return {
-                    ...product,
-                    variants: product.variants.filter(variant => variant.id.split('/').pop() === this.selectedVariantId)
-                };
-            })
-            .filter(product => product.variants.length > 0)[0].variants[0];
+
+        const selectedProduct = this.transformedData.find(product =>
+            product.id.split('/').pop() === this.selectedProductId
+        );
+
+        const selectedVariant = selectedProduct?.variants.find(variant =>
+            variant.id.split('/').pop() === this.selectedVariantId
+        );
 
         console.log("Selected product: ", selectedProduct);
         console.log("Selected variant: ", selectedVariant);
 
         const modalContent = document.getElementById('customBundleModalContent');
         if (this.selectedProductId) {
-            modalContent.innerHTML = `  <div id="modalTitle">Select Your Color</div>
-                                        <div id="available-colors">Available Colors</div>
-                                        <div id="selected-color">Selected variant id: ${this.selectedVariantId}</div>
-                                        <div id="selected-color">Color: Light Pink</div>
-                                        <div id="modalColorList">
-                                        ${selectedProduct.variants.map(variant => {
-                                            return `<div class="custom-bundle-modal-image-container">
-                                                        <img class="custom-bundle-variant-img ${variant.id === selectedVariant.id ? "selected-variant": ""}"
-                                                        src="${variant.image.url}" />
-                                                        <div>${variant.title}</div>
-                                                    </div>
-                                                    `
-                                        }).join('')}</div>
-                                    `
+            modalContent.innerHTML = `
+                <div id="modalTitle">Select Your Color</div>
+                    <div id="available-colors">Available Colors</div>
+                    <div id="selected-color">Selected variant id: ${this.selectedVariantId}</div>
+                    <div id="selected-color">Color: Light Pink</div>
+                    <div id="modalColorList">
+                    ${selectedProduct.variants.map(variant => {
+                return `<div class="custom-bundle-modal-image-container">
+                                <img class="custom-bundle-variant-img ${variant.id === selectedVariant.id ? "selected-variant" : ""}"
+                                src="${variant.image.url}" 
+                                data-variant-id="${variant.id}"
+                                
+                                />
+                                <div>${variant.title}</div>
+                            </div>
+                            `}).join('')}</div>`
         } else {
             modalContent.innerHTML = `<p>Product not found.</p>`
         }
 
         const modalImages = document.querySelectorAll('.custom-bundle-variant-img')
-        
-        modalImages.forEach(img => 
+
+        modalImages.forEach(img =>
             img.addEventListener('mouseenter', (e) => {
                 modalImages.forEach(img => img.classList.contains('hovered-variant') ? img.classList.remove('hovered-variant') : null)
                 e.target.classList.add('hovered-variant');
@@ -312,9 +315,46 @@ class CustomBundleApp extends HTMLElement {
             e.target.classList.remove('hovered-variant');
         }));
         modalImages.forEach(img => img.addEventListener('click', (e) => {
-            modalImages.forEach(img => img.classList.contains('selected-variant') ? img.classList.remove('selected-variant') : null)
+            modalImages.forEach(img => img.classList.contains('selected-variant') ? img.classList.remove('selected-variant') : null);
+            this.selectedVariantId = e.target.dataset.variantId.split('/').pop();
             e.target.classList.add('selected-variant');
+            setTimeout(() => {
+                this.modal.style.display = "none"
+            }, 100);
+            this.updateVariantList(0, this.getVariantById(this.selectedVariantId));
         }));
+    }
+
+    // ? TODO: All variants to be added. normalize or not normalize. Think
+    // Set initial variant list state
+    setVariantList() {
+        // {id: variant id, quantity: selected quantity, needed: neededQuantity, inventory: availableForSale}
+        this.variantList = this._bundleData.products.reduce((acc, product) => {
+            const variants = product.variants.map(variant => ({
+                id: variant.varId.split('/').pop(),
+                quantity: variant.quantityNeeded,
+                needed: variant.quantityNeeded,
+                inventory: variant.inventory
+            }));
+            return acc.concat(variants);
+        }, []);
+    }
+
+    getVariantById(id) {
+        return this.transformedData
+            .flatMap(product => product.variants)
+            .find(variant =>
+                variant.id.split('/').pop() === id
+            );
+    }
+
+    updateVariantList(index, newVariant) {
+
+        // const index = this.variantList.findIndex(variant => variant.id === id);
+        // if (index !== -1) {
+        //     // Replace the old variant with the new one at the same index
+        //     this.variantList.splice(index, 1, newVariant);
+        // }
     }
 }
 
