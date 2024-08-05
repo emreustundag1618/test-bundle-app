@@ -38,6 +38,7 @@ const BundleDetail = () => {
     const [bundle, setBundle] = useState<Bundle>(bundleData);
     const selectedIds = (bundle.products.length > 0) ? bundle.products.map((product: any) => ({ id: product.proId, variants: product.variants.map((variant: any) => ({ id: variant.varId })) })) : [];
 
+    console.log("Bundle: ", bundle);
     // TODO: ---- Extract state logic into a reducer with useReducer and useContext hook for better modularity and readability. See: https://react.dev/learn/scaling-up-with-reducer-and-context
 
     const fetcher = useFetcher();
@@ -133,6 +134,13 @@ const BundleDetail = () => {
         shopify.toast.show("Bundle deleted");
     }
 
+    const handleNavigationToBundle = () => {
+        const STORE_NAME = "emre-development-store";
+        const bundleProductId = bundle.shopifyId.split('/').pop();
+        const url = `https://admin.shopify.com/store/${STORE_NAME}/products/${bundleProductId}`;
+        window.open(url, '_blank');
+    }
+
     return (
         <Page
             title={bundle.title}
@@ -141,8 +149,13 @@ const BundleDetail = () => {
             secondaryActions={[
                 {
                     content: 'Delete',
-                    destructive: false,
+                    destructive: true,
                     onAction: () => { shopify.modal.show('delete-modal') }
+                },
+                {
+                    content: 'View bundle',
+                    destructive: false,
+                    onAction: () => { handleNavigationToBundle() }
                 },
             ]}
         >
@@ -195,7 +208,7 @@ const BundleDetail = () => {
                         )
                         :
                         (
-                            <ProductList bundle={bundle} onQuantityChange={handleQuantityChange} onSelectProducts={selectProducts}/>
+                            <ProductList bundle={bundle} onQuantityChange={handleQuantityChange} onSelectProducts={selectProducts} />
                         )
                     }
                 </Layout>

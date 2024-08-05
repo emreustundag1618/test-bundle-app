@@ -1,5 +1,7 @@
-import { BlockStack, InlineGrid, InlineStack, Thumbnail, Text, TextField, Icon, Button } from '@shopify/polaris';
+import { BlockStack, InlineGrid, InlineStack, Thumbnail, Text, TextField, Icon, Button, Link } from '@shopify/polaris';
 import { ImageIcon } from '@shopify/polaris-icons';
+import { getVariantUrl } from '~/utils/getVariantUrl';
+
 
 const ProductRow = ({ product, variant, onQuantityChange }: any) => {
     return (
@@ -13,8 +15,8 @@ const ProductRow = ({ product, variant, onQuantityChange }: any) => {
                     />
                 </BlockStack>
                 <BlockStack>
-                    <Text variant="bodyMd" fontWeight="bold" as="h3">{product.title}</Text>
-                    <Text variant="bodyMd" as="h4">{variant.title}</Text>
+                    <Link target="_blank" url={getVariantUrl(product)} removeUnderline monochrome>{product.title}</Link>
+                    <Link target="_blank" url={getVariantUrl(product, variant)} removeUnderline monochrome>{variant.title}</Link>
                 </BlockStack>
             </InlineStack>
 

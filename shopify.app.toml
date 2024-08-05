@@ -3,7 +3,7 @@
 client_id = "f4d04445a027ec1a9c87093458c6b341"
 name = "test-bundle-app"
 handle = "test-bundle-app"
-application_url = "https://continued-clips-holidays-possibility.trycloudflare.com"
+application_url = "https://orientation-cable-controls-gained.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_products,unauthenticated_read_product_listings,write_products,wri
 
 [auth]
 redirect_urls = [
-  "https://continued-clips-holidays-possibility.trycloudflare.com/auth/callback",
-  "https://continued-clips-holidays-possibility.trycloudflare.com/auth/shopify/callback",
-  "https://continued-clips-holidays-possibility.trycloudflare.com/api/auth/callback"
+  "https://orientation-cable-controls-gained.trycloudflare.com/auth/callback",
+  "https://orientation-cable-controls-gained.trycloudflare.com/auth/shopify/callback",
+  "https://orientation-cable-controls-gained.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
